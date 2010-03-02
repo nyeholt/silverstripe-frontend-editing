@@ -6,9 +6,7 @@ Director::addRules(100, array(
 	FRONTEND_EDIT_PREFIX.'//$Action' => 'EditablePage_Controller',
 ));
 
-
-// Explicit include to ensure the FrontendEditable class is available for extending others
-include_once dirname(__FILE__).'/code/EditablePage.php';
-Object::add_extension('SiteTree', 'FrontendEditable');
+// Add something like the following for pages that you are going to use frontend editing on
+// Object::add_extension('Page', 'FrontendEditableExtension');
 
 ?>

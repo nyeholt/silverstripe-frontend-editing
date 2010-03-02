@@ -1,67 +1,29 @@
 <?php
+/*
 
-class EditablePage_Controller extends Page_Controller {
+Copyright (c) 2009, SilverStripe Australia PTY LTD - www.silverstripe.com.au
+All rights reserved.
 
-	public function init() {
-		parent::init();
-	}
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-	/**
-	 * Commit a page changed via the frontend editing
-	 *
-	 * @return
-	 */
-	public function frontendCommit()
-	{
-		$urlName = isset($_POST['url']) ? $_POST['url'] : null;
-		if ($urlName) {
-			
-			$obj = $this->Page($urlName);
-			if ($obj->canPublish()) {
-				// unlock
-				$this->owner->LockedBy = '';
-				$this->owner->write();
-				$obj->doPublish();
-			}
-		}
-	}
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of SilverStripe nor the names of its contributors may be used to endorse or promote products derived from this software
+      without specific prior written permission.
 
-	/**
-	 * Save data into the requested object. Need to make sure that we have a logged in
-	 * user, and we're operating on the draft stage (can't edit the published stuff directly!)
-	 *
-	 * @return unknown_type
-	 */
-	public function frontendSave()
-	{
-		if(!$this->FrontendEditAllowed()) {
-			$link = $this->Link();
-			$message = _t("ContentController.DRAFT_SITE_ACCESS_RESTRICTION", 'You must log in with your CMS password in order to view the draft or archived content.  <a href="%s">Click here to go back to the published site.</a>');
-			return Security::permissionFailure($this, sprintf($message, "$link?stage=Live"));
-		}
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+OF SUCH DAMAGE.
+*/
 
-		$data = isset($_POST['data']) ? $_POST['data'] : null;
-
-		if ($data) {
-			// deserialise
-			$data = json_decode($data);
-			foreach ($data as $urlName => $properties) {
-				$id = $properties->ID;
-				if ($id) {
-					// set all the contents on the item
-					$obj = $this->Page($urlName);
-					if ($obj->canEdit()) {
-						unset($properties->ID);
-						$obj->update($properties);
-						$result = $obj->write();
-					}
-				}
-			}
-		}
-	}
-}
-
-class FrontendEditable extends DataObjectDecorator
+/**
+ * @author Marcus Nyeholt <marcus@silverstripe.com.au>
+ */
+class FrontendEditableExtension extends DataObjectDecorator
 {
 	/**
 	 * Add the 'lockedby' field
@@ -85,18 +47,18 @@ class FrontendEditable extends DataObjectDecorator
 		if (!($this->owner->canEdit() && Versioned::current_stage() == 'Stage')) {
 			return false;
 		}
-		
+
 		$currentLocker = $this->owner->LockedBy;
 		$currentUser = Member::currentUser()->Email;
 		if (strlen($currentLocker) == 0) {
 			// lock
 			$this->lockObject($this->owner, $currentUser);
-			return true; 
+			return true;
 		} else {
 			return $currentLocker == $currentUser;
 		}
 	}
-	
+
 	public function lockObject($object, $user) {
 		$object->LockedBy = $user;
 		$object->write();
@@ -130,5 +92,4 @@ HTML;
 		}
 	}
 }
-
 ?>
