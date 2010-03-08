@@ -79,7 +79,6 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 		);
 	}
 
-
 	/**
 	 * Indicates whether the current user can edit the current fields on the frontend
 	 *
@@ -123,6 +122,7 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 			} else {
 				Requirements::javascript('frontend-editing/javascript/jquery.json.js');
 				Requirements::javascript('frontend-editing/javascript/nicEditDev.js');
+				Requirements::javascript('frontend-editing/javascript/nicedit-table.js');
 				Requirements::javascript('frontend-editing/javascript/page-editor.js');
 
 				$urlPrefix = Director::baseURL() . FRONTEND_EDIT_PREFIX;

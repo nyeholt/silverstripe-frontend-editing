@@ -1,7 +1,7 @@
 
 var SSFrontend = {};
 
-;(function($) {
+(function($) {
 	
 	var ssEditor = null;
 	
@@ -31,7 +31,8 @@ var SSFrontend = {};
 			
 			if (firstChild != null) {
 				var toolboxBuffer = $("<div id='__toolbox-buffer' style=''></div>").prependTo($('body'));
-				var toolbox = $("<div id='__toolbox'><img id='__ajax-load' src='frontend-editing/javascript/ajax-loader.gif' /><div id='__message-box'></div></div>").prependTo($('body'));
+				var toolbox = $("<div id='__toolbox'></div>").prependTo($('body'));
+				toolbox.append("<img id='__ajax-load' src='frontend-editing/javascript/ajax-loader.gif' /><div id='__message-box'></div>");
 				toolbox.append("<div id='__toolboxcontent'><div id='__editor-panel' ></div></div>");
 
 				var toolboxControl = $("<div id='__toolbox-control'></div>").appendTo(toolbox);
@@ -111,7 +112,7 @@ var SSFrontend = {};
 			var buttons = ['sssave','bold','italic','underline','left','center',
 	       		'right','justify','ol','ul','fontSize','fontFamily','fontFormat',
 	       		'indent','outdent','imgsel','urlsel','link','unlink','forecolor',
-	       		'bgcolor','xhtml'];
+	       		'bgcolor','xhtml', 'table'];
 	       	var icons = {"xhtml":1,"bgcolor":2,"forecolor":3,"bold":4,"center":5,
 	       		"hr":6,"indent":7,"italic":8,"justify":9,"left":10,"ol":11,"outdent":12,
 	       		"removeformat":13,"right":14,"sssave":25,"strikethrough":16,"subscript":17,
@@ -189,7 +190,6 @@ var SSFrontend = {};
 		 * have a hook so users can define their own...
 		 */
 		registerPlugins: function () {
-			
 			var ssSaveOptions = {
 				buttons : {
 					'sssave' : {name : __('Save this content'), type : 'ssEditorSaveButton'}
@@ -208,9 +208,11 @@ var SSFrontend = {};
 			});
 
 			nicEditors.registerPlugin(nicPlugin, ssSaveOptions);
+			nicEditors.registerPlugin(nicPlugin,tableOptions);
 		}
 	};
 })(jQuery);
+
 
 /*
 var urlSelectorOptions = {
@@ -361,4 +363,3 @@ function treeNodeClicked(val)
 	var bits = val.split('|');
 	jQuery('#__tree-selection').val(bits[2] + "?" + bits[1]);
 }
-
