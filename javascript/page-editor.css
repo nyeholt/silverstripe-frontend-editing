@@ -15,3 +15,6 @@ div.nicEdit-panel {margin-top : 14px; margin-left: 14px; zoom : 1; overflow : hi
 #__message-box { margin-top: 20px; margin-right: 20px; padding: 5px; font-size: 12px; font-weight: bold; background-color: #131F11; width: 400px; float: right; color: #fff; display: none; }
 .__editable { border: 1px dashed #ccc; }
 .__editor-dialog {font-size: small; background-color: #fff; position: fixed; top: 100px; left: 200px; width: 400px; border: 1px solid #aaa; padding: 1em}
+
+.__editable_locked { border: 1px dashed #ff0000 }
+.lockInfo { font-size: 75%; text-align: right; background-color: #ccc; color: #666; margin: 0px !important; padding: 0.5em; }
