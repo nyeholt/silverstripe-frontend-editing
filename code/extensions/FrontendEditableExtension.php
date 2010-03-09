@@ -120,20 +120,27 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 			if ($lock != null && $lock['user'] != Member::currentUser()->Email) {
 				return '<div class="__editable_locked">'.$fieldValue.'<p class="lockInfo">'.sprintf(_t('FrontendEdit.LOCKED_BY', 'Locked by %s until %s'), $lock['user'], $lock['expires']).'</p></div>';
 			} else {
+
+				Requirements::css('frontend-editing/javascript/jstree/themes/default/style.css');
+
+				Requirements::javascript('frontend-editing/javascript/jstree/jquery.tree.js');
 				Requirements::javascript('frontend-editing/javascript/jquery.json.js');
 				Requirements::javascript('frontend-editing/javascript/nicEditDev.js');
 				Requirements::javascript('frontend-editing/javascript/nicedit-table.js');
+				Requirements::javascript('frontend-editing/javascript/nicedit-tree.js');
+				Requirements::javascript('frontend-editing/javascript/nicedit-url-selector.js');
 				Requirements::javascript('frontend-editing/javascript/page-editor.js');
 
+				$base = Director::baseURL();
 				$urlPrefix = Director::baseURL() . FRONTEND_EDIT_PREFIX;
 				$frontendEditor = <<<HTML
+				window.SILVERSTRIPE_BASE = '$base';
 				jQuery().ready(function() {
 					var frontendEditor = new SSFrontend.FrontendEditor({saveUrl:"$urlPrefix/frontendSave", commitUrl: "$urlPrefix/frontendCommit"});
 				});
 HTML;
 				$lockUpdate = $this->owner->getLockUpdater();
 				Requirements::customScript($frontendEditor, 'frontend_editor_script');
-
 				Requirements::customScript($lockUpdate, 'lock_updater_for_'.$this->owner->ID);
 
 				$urlSegment = $this->owner->URLSegment;

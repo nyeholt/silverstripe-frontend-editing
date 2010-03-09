@@ -3,7 +3,7 @@
 /**
  * The controller that handles editing submissions from the frontend.
  */
-class FrontendEditing_Controller extends Page_Controller
+class FrontendEditing_Controller extends ModelAsController
 {
 	/**
 	 * Commit a page changed via the frontend editing

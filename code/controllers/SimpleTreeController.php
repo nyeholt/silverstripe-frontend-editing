@@ -21,51 +21,46 @@ OF SUCH DAMAGE.
 */
 
 /**
- * Controller that manages the updating of lock information for
- * a page. 
+ * Controller that handles requests for data to manage the tree
  *
  * @author Marcus Nyeholt <marcus@silverstripe.com.au>
  */
-class LockableController extends Controller
+class SimpleTreeController extends Controller
 {
-	public static $allowed_actions = array(
-		'updatelock'
-	);
-
-	/**
-	 * Updates the lock held by the current user
-	 *
-	 * @return String
-	 */
-    public function updatelock()
+    public function childnodes($request)
 	{
-		$response = new stdClass();
-		$pageId = $this->urlParams['ID'];
-		if (!$pageId) {
-			$response->status = 0;
-			$response->message = _t('Lockable.ID_NOT_FOUND', 'The page ID was not specified');
-		} else {
-			$page = DataObject::get_by_id('Page', $pageId);
-			if ($page->ID && $page->canEdit()) {
-				// forcefully take the lock if possible
-				$lock = $page->getEditingLocks(true);
-				$response->status = 1;
-				$response->message = 'Lock updated succesfully';
+		$data = array();
 
-				if ($lock != null && $lock['user'] != Member::currentUser()->Email) {
-					// someone else has stolen it !
-					$response->status = 0;
-					$response->message = _t('WikiPage.LOCK_STOLEN', "Another user (".$lock['user'].") has forcefully taken this lock");
-				} else if ($lock != null) {
-					$response->message = 'Lock updated successfully, locked until '.$lock['expires'];
-				}
+		$parentId = $request->getVar('id');
+		if (!$parentId) {
+			$parentId = 'SiteTree-0';
+		}
+
+		list($type, $id) = explode('-', $parentId);
+		if (!$type || $id < 0) {
+			$data = array(0 => array('data' => 'An error has occurred'));
+		} else {
+			$children = null;
+			if ($id == 0) {
+				$children = DataObject::get('SiteTree', 'ParentID = 0');
 			} else {
-				$response->status = 0;
-				$response->message = _t('Lockable.PAGE_NOT_FOUND', 'The page with ID '.$pageId.' was not found');
+				$object = DataObject::get_by_id($type, $id);
+				$children = $object->Children();
+			}
+			
+			$data = array();
+			foreach ($children as $child) {
+				$haskids = $child->numChildren() > 0;
+
+				$data[] = array(
+					'attributes' => array('id' => $child->ClassName. '-' . $child->ID),
+					'data' => isset($child->MenuTitle) ? $child->MenuTitle : $child->Title,
+					'state' => $haskids ? 'closed' : 'open'
+				);
 			}
 		}
 		
-		return Convert::raw2json($response);
+		return Convert::raw2json($data);
 	}
 }
 ?>

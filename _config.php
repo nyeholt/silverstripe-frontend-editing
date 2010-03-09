@@ -2,11 +2,15 @@
 
 define('FRONTEND_EDIT_PREFIX', 'frontendedit');
 define('LOCKABLE_PREFIX', '__lockable');
+define('TREE_PREFIX', '__tree');
 
 Director::addRules(100, array(
 	FRONTEND_EDIT_PREFIX.'//$Action' => 'FrontendEditing_Controller',
-	LOCKABLE_PREFIX.'//$Action//$ID' => 'LockableController'
+	LOCKABLE_PREFIX.'//$Action//$ID' => 'LockableController',
+	TREE_PREFIX.'//$Action//$ID' => 'SimpleTreeController',
+	
 ));
+
 
 // Add something like the following for pages that you are going to use frontend editing on
 // Object::add_extension('Page', 'FrontendEditableExtension');
