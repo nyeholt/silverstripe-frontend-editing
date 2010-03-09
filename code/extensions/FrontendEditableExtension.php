@@ -90,7 +90,7 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 		$canEdit = $this->owner->canEdit();
 		$frontendPerm = Permission::check(self::CAN_FRONTEND_EDIT);
 		$stage = Versioned::current_stage() == 'Stage';
-		if (!($isCreator || $canEdit || $frontendPerm) && $stage) {
+		if (!($isCreator || $canEdit || $frontendPerm) || !$stage) {
 			return false;
 		}
 		return true;
@@ -150,7 +150,7 @@ HTML;
 				return '<'.$tagType.' class="__editable __wysiwyg-editable" id="'.$urlSegment.'|'.$ID.'|'.$fieldName.'">'.$fieldValue.'</'.$tagType.'>';
 			}
 		} else {
-			return $fieldValue;
+			return $this->owner->XML_val($fieldName);
 		}
 	}
 }

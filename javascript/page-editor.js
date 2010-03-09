@@ -159,7 +159,8 @@ var SSFrontend = {};
 						pageArgs = {};
 					}
 
-					pageArgs[pageElement] = instances[i].getContent();
+					var cleanedContent = instances[i].getContent().replace(/\[sitetree_link%20id=/g, "[sitetree_link id=");
+					pageArgs[pageElement] = cleanedContent;
 					pageArgs["ID"] = pageId;
 					postArgs[pagePath] = pageArgs;
 				}

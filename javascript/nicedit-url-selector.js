@@ -29,6 +29,7 @@
 			.appendTo(this.pane.pane)
 			.setContent('<div id="ssauLinkTree"></div>');
 
+			var $this = this;
 			$('#ssauLinkTree').tree({
 				data : {
 					type : "json",
@@ -36,6 +37,14 @@
 					opts : {
 						async: true,
 						url : SILVERSTRIPE_BASE + '/__tree/childnodes'
+					}
+				},
+				callback: {
+					onselect: function (node, tree) {
+						var bits = node.id.split('-');
+						if (bits[1]) {
+							$this.inputs['href'].value = '[sitetree_link id=' + bits[1] + ']';
+						}
 					}
 				}
 			});
