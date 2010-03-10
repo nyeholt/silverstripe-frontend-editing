@@ -51,10 +51,16 @@ class SimpleTreeController extends Controller
 			$data = array();
 			foreach ($children as $child) {
 				$haskids = $child->numChildren() > 0;
-
+				$nodeData = array(
+					'title' => isset($child->MenuTitle) ? $child->MenuTitle : $child->Title,
+					'rel' => Convert::raw2att($child->MenuTitle),
+				);
+				if (!$haskids) {
+					$nodeData['icon'] = 'frontend-editing/images/page.png';
+				}
 				$data[] = array(
 					'attributes' => array('id' => $child->ClassName. '-' . $child->ID),
-					'data' => isset($child->MenuTitle) ? $child->MenuTitle : $child->Title,
+					'data' => $nodeData,
 					'state' => $haskids ? 'closed' : 'open'
 				);
 			}

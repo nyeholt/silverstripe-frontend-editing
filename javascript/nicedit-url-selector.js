@@ -9,25 +9,41 @@
 	window.ssauLinkButton = nicEditorAdvancedButton.extend({
 		addPane : function() {
 			this.ln = this.ne.selectedInstance.selElm().parentTag('A');
-			this.addForm({
-				'' : {type : 'title', txt : 'Add/Edit Link'},
-				'href' : {type : 'text', txt : 'URL', value : 'http://', style : {width: '150px'}},
-				'title' : {type : 'text', txt : 'Title'},
-				'target' : {type : 'select', txt : 'Open In', options : {'' : 'Current Window', '_blank' : 'New Window'},style : {width : '100px'}},
-				'' : {type: 'title', txt: 'OR select a page below'}
-			},this.ln);
-
-			this.pane.pane.setStyle({width: '400px'})
 
 			var treeDiv = new bkElement('DIV')
 			  .setStyle({
-				width     : '98%',
+				width     : '280px',
 				height    : '300px',
 				overflow  : 'auto',
-				fontWeight: 'bold'
+				'float'   : 'right'
 			  })
 			.appendTo(this.pane.pane)
 			.setContent('<div id="ssauLinkTree"></div>');
+
+			this.controlsDiv = new bkElement('DIV')
+			.setStyle({
+				width: '200px',
+				height: '300px',
+				'margin-right': '300px'
+			})
+			.appendTo(this.pane.pane);
+
+			var form = new bkElement('form').addEvent('submit',this.submit.closureListener(this));
+			form.setContent(
+				'<div><label>Link to a page on another site</label><input type="text" name="href" value="http://" /><input type="hidden" name="internalhref" /></div>' +
+				'<div><label>The title to use for this link</label><input type="text" name="title" /></div>' +
+				'<div><label>Where should this link open?</label><select name="target"><option value="_top">This window</option><option value="_blank">A new window</option></select></div>' +
+				'<div><input type="submit" value="Save" /></div>'
+			);
+			form.appendTo(this.controlsDiv);
+
+			if (this.ln) {
+				$(this.controlsDiv).find('[name=href]').val(this.ln.getAttribute('href'));
+				$(this.controlsDiv).find('[name=title]').val(this.ln.getAttribute('title'));
+				$(this.controlsDiv).find('[name=target]').val(this.ln.getAttribute('target'));
+			}
+
+			this.pane.pane.setStyle({width: '520px'})
 
 			var $this = this;
 			$('#ssauLinkTree').tree({
@@ -39,18 +55,26 @@
 						url : SILVERSTRIPE_BASE + '/__tree/childnodes'
 					}
 				},
+				ui: {
+					theme_name: 'default'
+				},
 				callback: {
 					onselect: function (node, tree) {
 						var bits = node.id.split('-');
 						if (bits[1]) {
-							$this.inputs['href'].value = '[sitetree_link id=' + bits[1] + ']';
+							$(this.controlsDiv).find('[name=internalhref]').val('[sitetree_link id=' + bits[1] + ']');
+							// $(this.controlsDiv).find('[name=title]').val(node.getAttribute('rel'));
 						}
 					}
 				}
 			});
 		},
 		submit : function(e) {
-			var url = this.inputs['href'].value;
+			var url = $(this.controlsDiv).find('[name=href]').val();
+			var internalUrl = $(this.controlsDiv).find('[name=internalhref]').val();
+			if (internalUrl && (!url.length || url == 'http://')) {
+				url = internalUrl;
+			}
 			if(url == "http://" || url == "") {
 				alert("You must enter a URL to Create a Link");
 				return false;
@@ -64,9 +88,9 @@
 			}
 			if(this.ln) {
 				this.ln.setAttributes({
-					href : this.inputs['href'].value,
-					title : this.inputs['title'].value,
-					target : this.inputs['target'].options[this.inputs['target'].selectedIndex].value
+					href : url,
+					title : $(this.controlsDiv).find('[name=title]').val(),
+					target : $(this.controlsDiv).find('[name=target]').val()
 				});
 			}
 		}

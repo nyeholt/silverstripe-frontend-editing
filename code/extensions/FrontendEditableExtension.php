@@ -120,7 +120,6 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 			if ($lock != null && $lock['user'] != Member::currentUser()->Email) {
 				return '<div class="__editable_locked">'.$fieldValue.'<p class="lockInfo">'.sprintf(_t('FrontendEdit.LOCKED_BY', 'Locked by %s until %s'), $lock['user'], $lock['expires']).'</p></div>';
 			} else {
-
 				Requirements::css('frontend-editing/javascript/jstree/themes/default/style.css');
 
 				Requirements::javascript('frontend-editing/javascript/jstree/jquery.tree.js');
