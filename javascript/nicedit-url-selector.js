@@ -104,9 +104,10 @@
 					// now search so that we expand to the current selection
 					var href = this.ln.getAttribute('href');
 					setTimeout(function () {
+						// need a timeout to ensure the page has enough time to initialise before we try anything
+						// funky
 						$.tree.reference('#ssauLinkTree').search(href);
 					}, 500);
-					
 				} else {
 					$(this.controlsDiv).find('[name=href]').val(this.ln.getAttribute('href'));
 				}
@@ -124,7 +125,7 @@
 						curSel = curSel.htmlText;
 					} else {
 						curSel = curSel.cloneContents();
-						curSel = curSel.firstChild.nodeValue;
+						curSel = curSel.textContent;
 					}
 					
 					$(this.controlsDiv).find('[name=linkText]').val(curSel);
