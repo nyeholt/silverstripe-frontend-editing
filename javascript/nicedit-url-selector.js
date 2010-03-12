@@ -102,7 +102,11 @@
 					$(this.controlsDiv).find('[name=internalhref]').val(this.ln.getAttribute('href'));
 					$('#linkThisSite').click();
 					// now search so that we expand to the current selection
-					$.tree.reference('#ssauLinkTree').search(this.ln.getAttribute('href'));
+					var href = this.ln.getAttribute('href');
+					setTimeout(function () {
+						$.tree.reference('#ssauLinkTree').search(href);
+					}, 500);
+					
 				} else {
 					$(this.controlsDiv).find('[name=href]').val(this.ln.getAttribute('href'));
 				}
@@ -116,8 +120,14 @@
 				if (curSel) {
 					// TODO - will this break in ie 7 and less? PROBABLY
 					// @see http://cutesoft.net/forums/thread/58988.aspx for a possible fix...
-					curSel = curSel.cloneContents();
-					$(this.controlsDiv).find('[name=linkText]').val(curSel.firstChild.nodeValue);
+					if (curSel.htmlText) {
+						curSel = curSel.htmlText;
+					} else {
+						curSel = curSel.cloneContents();
+						curSel = curSel.firstChild.nodeValue;
+					}
+					
+					$(this.controlsDiv).find('[name=linkText]').val(curSel);
 				}
 			}
 
