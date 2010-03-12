@@ -27,9 +27,19 @@ OF SUCH DAMAGE.
  */
 class SimpleTreeController extends Controller
 {
+	/**
+	 * Request nodes from the server
+	 *
+	 * @param SS_HTTPRequest $request
+	 * @return JSONString
+	 */
     public function childnodes($request)
 	{
 		$data = array();
+
+		if ($request->getVar('search')) {
+			return $this->performSearch($request->getVar('search'));
+		}
 
 		$parentId = $request->getVar('id');
 		if (!$parentId) {
@@ -40,9 +50,10 @@ class SimpleTreeController extends Controller
 		if (!$type || $id < 0) {
 			$data = array(0 => array('data' => 'An error has occurred'));
 		} else {
+			$rootObjectType = 'SiteTree'; // update this for whatever other types we might be using, like File
 			$children = null;
 			if ($id == 0) {
-				$children = DataObject::get('SiteTree', 'ParentID = 0');
+				$children = DataObject::get($rootObjectType, 'ParentID = 0');
 			} else {
 				$object = DataObject::get_by_id($type, $id);
 				$children = $object->Children();
@@ -50,16 +61,18 @@ class SimpleTreeController extends Controller
 			
 			$data = array();
 			foreach ($children as $child) {
+				if ($child->ID < 0) {
+					continue;
+				}
 				$haskids = $child->numChildren() > 0;
 				$nodeData = array(
 					'title' => isset($child->MenuTitle) ? $child->MenuTitle : $child->Title,
-					'rel' => Convert::raw2att($child->MenuTitle),
 				);
 				if (!$haskids) {
 					$nodeData['icon'] = 'frontend-editing/images/page.png';
 				}
 				$data[] = array(
-					'attributes' => array('id' => $child->ClassName. '-' . $child->ID),
+					'attributes' => array('id' => $rootObjectType. '-' . $child->ID, 'title' => Convert::raw2att($nodeData['title'])),
 					'data' => $nodeData,
 					'state' => $haskids ? 'closed' : 'open'
 				);
@@ -67,6 +80,31 @@ class SimpleTreeController extends Controller
 		}
 		
 		return Convert::raw2json($data);
+	}
+
+	/**
+	 * Search for a node based on the passed in criteria. The output is a list
+	 * of nodes that should be opened from the top down
+	 *
+	 */
+	protected function performSearch($query, $rootObjectType = 'SiteTree')
+	{
+		if(preg_match('/\[sitetree_link id=([0-9]+)\]/i', $query, $matches)) {
+			$item = DataObject::get_by_id($rootObjectType, $matches[1]);
+			if ($item && $item->ID) {
+				$items = array();
+				while ($item->ParentID != 0) {
+					array_unshift($items, $rootObjectType.'-'.$item->ID);
+					$item = $item->Parent();
+				}
+
+				array_unshift($items, $rootObjectType.'-'.$item->ID);
+
+				return implode(',', $items);
+			}
+		}
+
+		return '';
 	}
 }
 ?>
