@@ -111,12 +111,12 @@ var SSFrontend = {};
 		convertEditableRegions: function () {
 			var buttons = ['sssave','bold','italic','underline','left','center',
 	       		'right','justify','ol','ul','fontSize','fontFamily','fontFormat',
-	       		'indent','outdent','insertlink','unlink','forecolor',
+	       		'indent','outdent','insertlink','unlink','insertimage', 'forecolor',
 	       		'bgcolor','xhtml', 'table'];
 	       	var icons = {"xhtml":1,"bgcolor":2,"forecolor":3,"bold":4,"center":5,
 	       		"hr":6,"indent":7,"italic":8,"justify":9,"left":10,"ol":11,"outdent":12,
 	       		"removeformat":13,"right":14,"sssave":25,"strikethrough":16,"subscript":17,
-	       		"superscript":18,"ul":19,"underline":20,"image":21,"link":22,"unlink":23,
+	       		"superscript":18,"ul":19,"underline":20,"image":21,"insertimage":21,"link":22,"unlink":23,
 	       		"close":24,"arrow":26,"insertlink": 22}
 
 	       	var $this = this;

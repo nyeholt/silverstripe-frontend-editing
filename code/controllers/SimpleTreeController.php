@@ -37,28 +37,38 @@ class SimpleTreeController extends Controller
 	{
 		$data = array();
 
+		$rootObjectType = 'SiteTree';
+		if ($request->param('ID')) {
+			$rootObjectType = $request->param('ID');
+		}
+
 		if ($request->getVar('search')) {
-			return $this->performSearch($request->getVar('search'));
+			return $this->performSearch($request->getVar('search'), $rootObjectType);
 		}
 
 		$parentId = $request->getVar('id');
 		if (!$parentId) {
-			$parentId = 'SiteTree-0';
+			$parentId = $rootObjectType.'-0';
+		}
+
+		$selectable = null;
+
+		if ($request->param('OtherID')) {
+			$selectable = explode(',', $request->param('OtherID'));
 		}
 
 		list($type, $id) = explode('-', $parentId);
 		if (!$type || $id < 0) {
 			$data = array(0 => array('data' => 'An error has occurred'));
 		} else {
-			$rootObjectType = 'SiteTree'; // update this for whatever other types we might be using, like File
 			$children = null;
 			if ($id == 0) {
 				$children = DataObject::get($rootObjectType, 'ParentID = 0');
 			} else {
 				$object = DataObject::get_by_id($type, $id);
-				$children = $object->Children();
+				$children = $this->childrenOfNode($object);
 			}
-			
+
 			$data = array();
 			foreach ($children as $child) {
 				if ($child->ID < 0) {
@@ -68,11 +78,14 @@ class SimpleTreeController extends Controller
 				$nodeData = array(
 					'title' => isset($child->MenuTitle) ? $child->MenuTitle : $child->Title,
 				);
+				if ($selectable && !in_array($child->ClassName, $selectable)) {
+					$nodeData['clickable'] = false;
+				}
 				if (!$haskids) {
 					$nodeData['icon'] = 'frontend-editing/images/page.png';
 				}
 				$data[] = array(
-					'attributes' => array('id' => $rootObjectType. '-' . $child->ID, 'title' => Convert::raw2att($nodeData['title'])),
+					'attributes' => array('id' => $rootObjectType. '-' . $child->ID, 'title' => Convert::raw2att($nodeData['title']), 'link' => $child->RelativeLink()),
 					'data' => $nodeData,
 					'state' => $haskids ? 'closed' : 'open'
 				);
@@ -83,25 +96,52 @@ class SimpleTreeController extends Controller
 	}
 
 	/**
+	 * Method to work around bug where Hierarchy.php directly refers to
+	 * ShowInMenus, which is only available on SiteTree
+	 *
+	 * @param DataObject $node
+	 * @return DataObjectSet
+	 */
+	protected function childrenOfNode($node)
+	{
+		$result = $node->stageChildren(true);
+		if(isset($result)) {
+			foreach($result as $child) {
+				if(!$child->canView()) {
+					$result->remove($child);
+				}
+			}
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Search for a node based on the passed in criteria. The output is a list
 	 * of nodes that should be opened from the top down
 	 *
 	 */
 	protected function performSearch($query, $rootObjectType = 'SiteTree')
 	{
+		$item = null;
+
 		if(preg_match('/\[sitetree_link id=([0-9]+)\]/i', $query, $matches)) {
 			$item = DataObject::get_by_id($rootObjectType, $matches[1]);
-			if ($item && $item->ID) {
-				$items = array();
-				while ($item->ParentID != 0) {
-					array_unshift($items, $rootObjectType.'-'.$item->ID);
-					$item = $item->Parent();
-				}
+			
+		} else if (preg_match ('/^assets\//', $query)) {
+			// search for the file based on its filepath
+			$item = DataObject::get_one($rootObjectType, db_quote(array ('Filename =' => $query)));
+		}
 
+		if ($item && $item->ID) {
+			$items = array();
+			while ($item->ParentID != 0) {
 				array_unshift($items, $rootObjectType.'-'.$item->ID);
-
-				return implode(',', $items);
+				$item = $item->Parent();
 			}
+
+			array_unshift($items, $rootObjectType.'-'.$item->ID);
+			return implode(',', $items);
 		}
 
 		return '';

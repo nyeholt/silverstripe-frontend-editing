@@ -393,7 +393,7 @@
 						//event.stopPropagation(); 
 						return true;
 					});
-				$("#" + containerId + " li", this.container.get(0))
+				$("#" + containerId + " li")
 					.live("click", function(event) { // WHEN CLICK IS ON THE ARROW
 						if(event.target.tagName != "LI") return true;
 						_this.off_height();
@@ -402,7 +402,7 @@
 						event.stopPropagation();
 						return false;
 					});
-				$("#" + containerId + " a", this.container.get(0))
+				$("#" + containerId + " a")
 					.live("click", function (event) { // WHEN CLICK IS ON THE TEXT OR ICON
 						if(event.which && event.which == 3) return true;
 						if(_this.locked) {
