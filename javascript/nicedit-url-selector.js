@@ -27,7 +27,7 @@
 			.appendTo(this.pane.pane);
 			// .setContent('<div id="'+$this.treeId+'"></div>');
 
-			var controlsDiv = $('<div></div>').attr('id', 'urlSelectionControls').css({
+			var controlsDiv = $('<div></div>').css({
 				width: '200px',
 				height: '300px',
 				'margin-right': '300px'
@@ -41,24 +41,25 @@
 				'<div><label>The text for this link</label><input type="text" name="linkText" /></div>' +
 				'<div><label>The tooltip for this link</label><input type="text" name="linkTitle" /></div>' +
 				'<div><label>Where should this link open?</label><select name="target"><option value="_top">This window</option><option value="_blank">A new window</option></select></div>' +
-				'<div style="margin-top: 20px;"><input type="submit" value="Save" /><input type="button" value="Cancel" class="cancelButton" /></div>'
+				'<div style="margin-top: 20px;"><input type="submit" value="Save" /><input type="button" value="Cancel" id="cancelButton" /></div>'
 			);
 			controlsDiv.append(form);
 
-			var formControls = $('#urlSelectionControls');
+			var formControls = controlsDiv;
+			this.theFormControls = formControls;
 
-			formControls.find('.cancelButton').click(function () {
+			$('#cancelButton').click(function () {
 				$this.removePane();
 			})
 
-			formControls.find('#linkThisSite').click(function () {
+			$('#linkThisSite').click(function () {
 				$(treeDiv).show();
 				formControls.find('#externalPageLink').hide();
 			})
 
-			formControls.find('#linkOtherSite').click(function () {
+			$('#linkOtherSite').click(function () {
 				$(treeDiv).hide();
-				formControls.find('#externalPageLink').show();
+				$('#externalPageLink').show();
 			})
 
 			this.pane.pane.setStyle({width: '520px'})
@@ -81,8 +82,17 @@
 					onselect: function (node, tree) {
 						var bits = node.id.split('-');
 						if (bits[1]) {
-							formControls.find('[name=internalhref]').val('[sitetree_link id=' + bits[1] + ']');
-							formControls.find('[name=linkTitle]').val(node.getAttribute('title'));
+							var internalHref = $('[name=internalhref]');
+							var internalHrefVal = internalHref.val();
+							internalHref.val('[sitetree_link id=' + bits[1] + ']');
+							var linkTitle = $('[name=linkTitle]');
+							var linkTitleVal = linkTitle.val();
+							var nodeTitle = node.getAttribute('title');
+							linkTitle.val(node.getAttribute('title'));
+							var linkTitle = $('[name=linkTitle]');
+							if (linkTitle != null) {
+								
+							}
 						}
 					},
 					onsearch: function (nodes, tree) {
@@ -102,7 +112,7 @@
 				// see if we've got a sitetree_link type URL or otherwise
 				var curLink = this.ln.getAttribute('href');
 				if (curLink.indexOf('[') == 0) {
-					formControls.find('[name=internalhref]').val(this.ln.getAttribute('href'));
+					$('[name=internalhref]').val(this.ln.getAttribute('href'));
 					$('#linkThisSite').click();
 					// now search so that we expand to the current selection
 					var href = this.ln.getAttribute('href');
@@ -112,12 +122,12 @@
 						window.ssauUrlTree.search(href);
 					}, 500);
 				} else {
-					formControls.find('[name=href]').val(this.ln.getAttribute('href'));
+					$('[name=href]').val(this.ln.getAttribute('href'));
 				}
 
-				formControls.find('[name=linkTitle]').val(this.ln.getAttribute('title'));
-				formControls.find('[name=linkText]').val(this.ln.innerHTML);
-				formControls.find('[name=target]').val(this.ln.getAttribute('target'));
+				$('[name=linkTitle]').val(this.ln.getAttribute('title'));
+				$('[name=linkText]').val(this.ln.innerHTML);
+				$('[name=target]').val(this.ln.getAttribute('target'));
 			} else if (this.ne.selectedInstance.selElm()) {
 				// see if there's a text selection at all
 				var curSel = this.ne.selectedInstance.getRng();
@@ -128,10 +138,14 @@
 						curSel = curSel.htmlText;
 					} else {
 						curSel = curSel.cloneContents();
-						curSel = curSel.textContent;
+						if (curSel.textContent != '') {
+							curSel = curSel.textContent;
+						} else {
+							// use the raw html of whatever nodes we have
+							curSel = $('<div>').append($(curSel.childNodes[0]).clone()).html();
+						}
 					}
-					
-					formControls.find('[name=linkText]').val(curSel);
+					$('[name=linkText]').val(curSel);
 				}
 			}
 		},
@@ -149,8 +163,12 @@
 		},
 
 		submit : function(e) {
-			var formControls = $('#urlSelectionControls');
-			var url = formControls.find('input[name=linkType]:checked').val() == 'other' ? formControls.find('[name=href]').val() : formControls.find('[name=internalhref]').val();
+			var url = $('input[name=linkType]:checked').val() == 'other' ? $('[name=href]').val() : $('[name=internalhref]').val();
+
+			var linkText = $('[name=linkText]').val();
+			var linkTitle = $('[name=linkTitle]').val();
+			var linkTarget = $('[name=target]').val();
+
 			if(url == "http://" || url == "") {
 				alert("You must enter a URL to Create a Link");
 				e.preventDefault();
@@ -166,12 +184,13 @@
 			if(this.ln) {
 				this.ln.setAttributes({
 					href : url,
-					title : formControls.find('[name=linkTitle]').val(),
-					target : formControls.find('[name=target]').val()
+					title : linkTitle,
+					target : linkTarget
 				});
 
-				this.ln.innerHTML = formControls.find('[name=linkText]').val();
+				this.ln.innerHTML = linkText;
 			}
+			
 		}
 	});
 

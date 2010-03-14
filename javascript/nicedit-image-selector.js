@@ -28,7 +28,7 @@
 			
 			// .setContent('<div id="'+this.treeId+'"></div>');
 
-			var controlsDiv = $('<div></div>').attr('id', 'imageSelectionControls').css({
+			var controlsDiv = $('<div></div>').css({
 				width: '200px',
 				height: '300px',
 				'margin-right': '300px'
@@ -44,9 +44,7 @@
 
 			controlsDiv.append(form);
 
-			var formControls = $('#imageSelectionControls');
-			
-			formControls.find('.cancelButton').click(function () {
+			$('.cancelButton').click(function () {
 				$this.removePane();
 			})
 
@@ -69,8 +67,8 @@
 					onselect: function (node, tree) {
 						var bits = node.id.split('-');
 						if (bits[1]) {
-							formControls.find('[name=href]').val(node.getAttribute('link'));
-							formControls.find('[name=title]').val(node.getAttribute('title'));
+							$('[name=href]').val(node.getAttribute('link'));
+							$('[name=title]').val(node.getAttribute('title'));
 						}
 					}
 				}
@@ -83,7 +81,7 @@
 				// see if we've got a sitetree_link type URL or otherwise
 				var curLink = this.ln.getAttribute('src');
 				if (curLink.indexOf('assets/') === 0) {
-					formControls.find('[name=internalhref]').val(this.ln.getAttribute('src'));
+					$('[name=internalhref]').val(this.ln.getAttribute('src'));
 					// now search so that we expand to the current selection
 					setTimeout(function () {
 						// need a timeout to ensure the page has enough time to initialise before we try anything
@@ -91,10 +89,10 @@
 						ssauImageTree.search(curLink);
 					}, 500);
 				} else {
-					formControls.find('[name=href]').val(this.ln.getAttribute('href'));
+					$('[name=href]').val(this.ln.getAttribute('href'));
 				}
 
-				formControls.find('[name=title]').val(this.ln.getAttribute('title'));
+				$('[name=title]').val(this.ln.getAttribute('title'));
 			} else if (this.ne.selectedInstance.selElm()) {
 				// see if there's a text selection at all
 			}
@@ -115,7 +113,7 @@
 
 		submit : function(e) {
 			var formControls = $('#imageSelectionControls');
-			var url = formControls.find('[name=href]').val();
+			var url = $('[name=href]').val();
 			if(url == "http://" || url == "") {
 				alert("You must enter a URL to Create a Link");
 				return false;
@@ -130,7 +128,7 @@
 			if(this.ln) {
 				this.ln.setAttributes({
 					src : url,
-					title : formControls.find('[name=title]').val()
+					title : $('[name=title]').val()
 				});
 			}
 		}
