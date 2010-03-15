@@ -70,25 +70,27 @@ class SimpleTreeController extends Controller
 			}
 
 			$data = array();
-			foreach ($children as $child) {
-				if ($child->ID < 0) {
-					continue;
+			if ($children && count($children)) {
+				foreach ($children as $child) {
+					if ($child->ID < 0) {
+						continue;
+					}
+					$haskids = $child->numChildren() > 0;
+					$nodeData = array(
+						'title' => isset($child->MenuTitle) ? $child->MenuTitle : $child->Title,
+					);
+					if ($selectable && !in_array($child->ClassName, $selectable)) {
+						$nodeData['clickable'] = false;
+					}
+					if (!$haskids) {
+						$nodeData['icon'] = 'frontend-editing/images/page.png';
+					}
+					$data[] = array(
+						'attributes' => array('id' => $rootObjectType. '-' . $child->ID, 'title' => Convert::raw2att($nodeData['title']), 'link' => $child->RelativeLink()),
+						'data' => $nodeData,
+						'state' => $haskids ? 'closed' : 'open'
+					);
 				}
-				$haskids = $child->numChildren() > 0;
-				$nodeData = array(
-					'title' => isset($child->MenuTitle) ? $child->MenuTitle : $child->Title,
-				);
-				if ($selectable && !in_array($child->ClassName, $selectable)) {
-					$nodeData['clickable'] = false;
-				}
-				if (!$haskids) {
-					$nodeData['icon'] = 'frontend-editing/images/page.png';
-				}
-				$data[] = array(
-					'attributes' => array('id' => $rootObjectType. '-' . $child->ID, 'title' => Convert::raw2att($nodeData['title']), 'link' => $child->RelativeLink()),
-					'data' => $nodeData,
-					'state' => $haskids ? 'closed' : 'open'
-				);
 			}
 		}
 		
