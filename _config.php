@@ -13,7 +13,8 @@ Director::addRules(100, array(
 
 
 // Add something like the following for pages that you are going to use frontend editing on
-// Object::add_extension('Page', 'FrontendEditableExtension');
+// DataObject::add_extension('Page', 'FrontendEditableExtension');
+// DataObject::add_extension('Page', 'Lockable');
 //
 // Then, in templates, use $EditableField(<fieldname>) to have an html editable field
 
