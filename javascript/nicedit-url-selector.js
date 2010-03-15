@@ -35,8 +35,8 @@
 
 			var form = new bkElement('form').addEvent('submit',this.submit.closureListener(this));
 			form.setContent(
-				'<div><input type="radio" id="linkOtherSite" name="linkType" checked="checked" value="other" /><label for="linkOtherSite">Link to a page on another site</label></div>' +
-				'<div style="margin-bottom: 20px;"><input type="radio" name="linkType" id="linkThisSite" value="here" /><label for="linkThisSite">Link to a page on this site</label></div>' +
+				'<div><input type="radio" id="linkOtherSite" name="linkType" checked="checked" value="other" /><label class="inlineLabel" for="linkOtherSite">Link to a page on another site</label></div>' +
+				'<div style="margin-bottom: 10px;"><input type="radio" name="linkType" id="linkThisSite" value="here" /><label class="inlineLabel" for="linkThisSite">Link to a page on this site</label></div>' +
 				'<div id="externalPageLink"><label>URL</label><input type="text" name="href" value="http://" /><input type="hidden" name="internalhref" /></div>' +
 				'<div><label>The text for this link</label><input type="text" name="linkText" /></div>' +
 				'<div><label>The tooltip for this link</label><input type="text" name="linkTitle" /></div>' +
