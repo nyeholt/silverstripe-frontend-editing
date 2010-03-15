@@ -32,20 +32,20 @@ class FrontendEditing_Controller extends Controller
 	public function frontendSave()
 	{
 		Versioned::choose_site_stage();
-
 		$return = new stdClass();
 		$return->success = 0;
 		$return->message = "Data not found";
-		
+
 		$data = isset($_POST['data']) ? $_POST['data'] : null;
 		if ($data) {
 			// deserialise
 			$data = json_decode($data);
-			foreach ($data as $urlName => $properties) {
+			foreach ($data as $typeInfo => $properties) {
 				$id = $properties->ID;
 				if ($id) {
+					list($type, $otherid) = split('-', $typeInfo);
 					// set all the contents on the item
-					$obj = DataObject::get_by_id('SiteTree', $id);
+					$obj = DataObject::get_by_id($type, $id);
 					if ($obj) {
 						$lock = $obj->getEditingLocks();
 						if (!isset($lock['LastEditor']) || $lock['LastEditor'] == Member::currentUser()->Email) {
@@ -67,6 +67,35 @@ class FrontendEditing_Controller extends Controller
 					}
 				} else {
 					$return->message = sprintf(_t('FrontendEditing.PAGE_MISSING', 'Page %s could not be found'), $id);
+				}
+			}
+		}
+
+		return Convert::raw2json($return);
+	}
+
+	/**
+	 * Gets the content for a particular node. This takes a single parameter to indicate whether
+	 * to get the RAW content, or whether to get the escaped content that should appear (eg XML_Val) so that
+	 * things like URLs etc resolve correctly
+	 */
+	public function getcontent($request) {
+		Versioned::choose_site_stage();
+		$item = $request->param('ID');
+		$form = $request->param('OtherID');
+		$return = new stdClass();
+		$return->success = 0;
+		$return->message = "Data not found";
+
+		if ($item) {
+			list($type, $id, $field) = explode('-', $item);
+			$item = DataObject::get_by_id($type, $id);
+			if ($item && $item->userHasLocks()) {
+				if ($item->FrontendEditAllowed()) {
+					// safe to return data
+					$return->success = 1;
+					$return->message = "";
+					$return->data = $form == 'raw' ? $item->getField($field) : $item->XML_val($field);
 				}
 			}
 		}

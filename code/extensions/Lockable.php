@@ -160,5 +160,32 @@ JSCRIPT;
 
 		return $lock;
 	}
+
+	/**
+	 * Indicates whether the member has the lock on the current object
+	 *
+	 * If the second parameter is true, then it means we're being explicit in that the user must
+	 * have previously taken the locks before this method was called, and will not try to take
+	 * locks automatically. 
+	 *
+	 * @param Member $member
+	 *			The member to check lock holding for
+	 * @param boolean $explicit
+	 *			If set, then the logic will return true ONLY if the user has previously taken the locks
+	 *			and will not attempt to take the locks now
+	 */
+	public function userHasLocks($member=null, $explicit=true) {
+		if (!$member) {
+			$member = Member::currentUser();
+
+		}
+
+		$lock = $this->getEditingLocks(!$explicit);
+		if (!isset($lock['LastEditor']) || $lock['LastEditor'] == $member->Email) {
+			return true;
+		}
+
+		return false;
+	}
 }
 ?>
