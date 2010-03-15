@@ -7,7 +7,7 @@
 	<% end_if %>
 	<% end_if %>
 	<% if FrontendEditAllowed %>
-	<input type="button" value="<% _t('FrontendEdit.START_EDITING','Start Editing') %>" id="FE_SwitchOn"/>
-	<input type="button" value="<% _t('FrontendEdit.STOP_EDITING','Stop Editing') %>" id="FE_SwitchOff"/>
+	<input type="button" value="<% _t('FrontendEdit.START_EDITING','Open Editor') %>" id="FE_SwitchOn"/>
+	<input type="button" value="<% _t('FrontendEdit.STOP_EDITING','Close Editor') %>" id="FE_SwitchOff"/>
 	<% end_if %>
 </div>

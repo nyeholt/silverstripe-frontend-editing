@@ -35,17 +35,15 @@ var SSFrontend = {};
 			var dialogMask = $('#__editor-mask');
 			// create the backdrop
 			if (dialogMask.length == 0) {
-				dialogMask = $('<div id="__editor-mask"></div>').appendTo('body');
+				dialogMask = $('<div id="__editor-mask">Loading...</div>').appendTo('body');
 			}
 
 			var maskHeight = $(document).height();
 			var maskWidth = $(window).width();
 
 			//Set height and width to mask to fill up the whole screen
-			dialogMask.css({'width':maskWidth,'height':maskHeight});
-
-			dialogMask.fadeIn(50);
-			dialogMask.fadeTo("fast",0.8);
+			dialogMask.css({'width':maskWidth,'height':maskHeight, opacity: '0.8'});
+			dialogMask.show();
 		},
 		clearMask: function () {
 			$('#__editor-mask').hide();
@@ -183,12 +181,16 @@ var SSFrontend = {};
 		updateFieldContents: function (element, typeInfo, format) {
 			var $this = this;
 			var request = $this.options.contentUrl + '/' + typeInfo + '/' + format;
-			$.get(request, {}, function (data) {
-				var response = $.parseJSON(data);
-				if (!response.success) {
-					alert("There was an error initialising the data for " + typeInfo);
-				} else {
-					$(element).html(response.data);
+			$.ajax({
+				async: false,
+				url: request,
+				success: function (data) {
+					var response = $.parseJSON(data);
+					if (!response.success) {
+						alert("There was an error initialising the data for " + typeInfo);
+					} else {
+						$(element).html(response.data);
+					}
 				}
 			});
 		},
