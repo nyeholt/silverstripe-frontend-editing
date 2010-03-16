@@ -146,6 +146,9 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 			} else {
 				Requirements::css('frontend-editing/javascript/jstree/themes/default/style.css');
 
+				Requirements::css('frontend-editing/javascript/jquery.jgrowl.css');
+				Requirements::javascript('frontend-editing/javascript/jquery.jgrowl_minimized.js');
+
 				Requirements::javascript('frontend-editing/javascript/jstree-0.9.9a2/jquery.tree.js');
 				Requirements::javascript('frontend-editing/javascript/jquery.json.js');
 				Requirements::javascript('frontend-editing/javascript/nicEditDev.js');

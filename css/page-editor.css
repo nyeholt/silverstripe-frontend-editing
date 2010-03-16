@@ -23,3 +23,5 @@ div.nicEdit-panel {margin-top : 14px; margin-left: 14px; zoom: 1; overflow : hid
 
 .nicEdit-pane form label { display: block; font-size: 10px; }
 .nicEdit-pane form label.inlineLabel { display: inline; }
+
+#jGrowl div.message { background: none; color: #fff; border: none; }
