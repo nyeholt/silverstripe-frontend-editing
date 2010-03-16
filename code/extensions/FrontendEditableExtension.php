@@ -134,6 +134,7 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 		Requirements::javascript('frontend-editing/javascript/jquery-1.4.1.min.js');
 		Requirements::javascript('frontend-editing/javascript/edit-controls.js');
 		Requirements::css('frontend-editing/css/edit-controls.css');
+
 		// output only if the user can edit, otherwise we just output the field
 		if ($this->FrontendEditAllowed()) {
 			// try and take the lock

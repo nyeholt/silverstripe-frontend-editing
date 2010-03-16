@@ -16,6 +16,8 @@ Director::addRules(100, array(
 // Object::add_extension('Page', 'FrontendEditableExtension');
 //
 // Then, in templates, use $EditableField(<fieldname>) to have an html editable field
+//
+
 
 /**
  * A simple helper function to deal with DB quoting.

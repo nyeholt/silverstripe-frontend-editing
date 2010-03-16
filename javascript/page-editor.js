@@ -218,6 +218,10 @@ var SSFrontend = {};
 						alert("There was an error initialising the data for " + typeInfo);
 					} else {
 						$(element).html(response.data);
+						$(element).removeClass('__editable_empty');
+						if (response.data == null) {
+							$(element).addClass('__editable_empty');
+						}
 					}
 				}
 			});
