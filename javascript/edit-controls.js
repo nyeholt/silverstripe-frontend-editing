@@ -5,6 +5,7 @@
 			location.href = location.href + sep + 'stage=Live';
 		})
 	});
+
 	$().ready(function () {
 		$('#FE_EditDraft').click(function () {
 			var sep = location.href.indexOf('?') > 0 ? '&' : '?';

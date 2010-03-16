@@ -123,6 +123,9 @@ var SSFrontend = {};
 	       	this.pageEditor.setPanel('__editor-panel');
 	       	$('.'+$this.convertElements).each(function () {
 	       		$this.pageEditor.addInstance(this);
+				$(this).change(function () {
+					alert("Changed content to " + $(this).html());
+				})
 	       	});
 		},
 		

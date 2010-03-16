@@ -25,7 +25,8 @@ var SSFrontend = {};
 		init: function () {
 			var $this = this;
 			var autoSaveTimer = null;
-			
+
+			this.contentChanged = false;
 			this.registerPlugins();
 			this.initialiseToolbars();
 
@@ -49,6 +50,9 @@ var SSFrontend = {};
 			$('#__editor-mask').hide();
 		},
 
+		/**
+		 * Initialise the toolbars used by the editor
+		 */
 		initialiseToolbars: function () {
 			var $this = this;
 			var autoSaveTimer = null;
@@ -74,6 +78,10 @@ var SSFrontend = {};
 				// when closing
 				toolboxCloser.click(
 					function() {
+						if ($this.contentChanged && !confirm("Any changes made will be lost. Are you sure?")) {
+							return false;
+						}
+
 						$this.maskScreen();
 						toolbox.hide();
 						toolboxBuffer.hide();
@@ -92,6 +100,8 @@ var SSFrontend = {};
 						setTimeout(function () {
 							$this.clearMask();
 						}, 500);
+
+						return false;
 					}
 				);
 
@@ -136,7 +146,8 @@ var SSFrontend = {};
 		 * should also handle non-wysiwyg fields.
 		 */
 		convertEditableRegions: function () {
-			
+			this.contentChanged = false;
+
 			var buttons = ['sssave','bold','italic','underline','left','center',
 	       		'right','justify','ol','ul','fontSize','fontFamily','fontFormat',
 	       		'indent','outdent','insertlink','unlink','insertimage', 'forecolor',
@@ -146,6 +157,7 @@ var SSFrontend = {};
 	       		"removeformat":13,"right":14,"sssave":25,"strikethrough":16,"subscript":17,
 	       		"superscript":18,"ul":19,"underline":20,"image":21,"insertimage":21,"link":22,"unlink":23,
 	       		"close":24,"arrow":26,"insertlink": 22}
+			
 	       	var $this = this;
 	       	this.pageEditor = new nicEditor({buttonList: buttons, iconList: icons, iconsPath: 'frontend-editing/javascript/nicEditorIcons.gif'});
 	       	this.pageEditor.setPanel('__editor-panel');
@@ -154,6 +166,14 @@ var SSFrontend = {};
 				var elemParams = $(this).attr("id").split("|");
 				var typeInfo = elemParams[0] + '-' + elemParams[2];
 				$this.updateFieldContents(this, typeInfo, 'raw');
+
+				// it's safe to bind now, because updateFieldContents processes syncronously
+				$(this).click(function () {
+					$this.contentChanged = true;
+				});
+				$(this).keydown(function () {
+					$this.contentChanged = true;
+				})
 	       	});
 		},
 
@@ -162,6 +182,7 @@ var SSFrontend = {};
 		 */
 		unconvertEditableRegions: function () {
 			var $this = this;
+			
 			// remove all editor bits and pieces
 			var nicInstances = this.getEditorInstances();
 			for (var i = 0; i < nicInstances.length; i++) {
@@ -178,6 +199,13 @@ var SSFrontend = {};
 	       	});
 		},
 
+		/**
+		 * Switches field contents from being display ready to edit ready
+		 * This is done because silverstripe will sometimes pre-process content that gets displayed
+		 *
+		 * We do this synchronously so that users never edit content before it's fully loaded and ready
+		 * to be changed
+		 */
 		updateFieldContents: function (element, typeInfo, format) {
 			var $this = this;
 			var request = $this.options.contentUrl + '/' + typeInfo + '/' + format;
@@ -208,6 +236,7 @@ var SSFrontend = {};
 
 		saveContents: function (content, id, selectedInstances) {
 			var $this = this;
+			
 			var instances = this.getEditorInstances();
 			// get all the editors and package them up for saving
 			var postArgs = {};
@@ -236,9 +265,9 @@ var SSFrontend = {};
 
 				var postData = $.toJSON(postArgs);
 				$.post($this.options.saveUrl, {data: postData, ajax: true}, function () {
-					$this.message("Saved ");
+					$this.message("Saved");
+					$this.contentChanged = false;
 				});
-				
 			} else { 
 				$this.message("Failed to save");
 			}
