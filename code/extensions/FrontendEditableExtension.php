@@ -146,8 +146,6 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 			} else {
 				Requirements::css('frontend-editing/javascript/jstree/themes/default/style.css');
 
-//				Requirements::javascript('frontend-editing/javascript/jquery-1.4.1.min.js');
-//				Requirements::javascript('frontend-editing/javascript/jstree-v1b2/jquery.jstree.js');
 				Requirements::javascript('frontend-editing/javascript/jstree-0.9.9a2/jquery.tree.js');
 				Requirements::javascript('frontend-editing/javascript/jquery.json.js');
 				Requirements::javascript('frontend-editing/javascript/nicEditDev.js');
@@ -174,7 +172,7 @@ HTML;
 				$ID = $this->owner->ID;
 				$typeInfo = $this->owner->ClassName.'-'.$ID;
 				// now add the wrapped field
-				return '<'.$tagType.' class="__editable __wysiwyg-editable" id="'.$typeInfo.'|'.$ID.'|'.$fieldName.'">'.$this->owner->XML_val($fieldName).'</'.$tagType.'>';
+				return '<'.$tagType.' class="__wysiwyg-editable" id="'.$typeInfo.'|'.$ID.'|'.$fieldName.'">'.$this->owner->XML_val($fieldName).'</'.$tagType.'>';
 			}
 		} else {
 			return $this->owner->XML_val($fieldName);

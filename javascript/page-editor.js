@@ -36,7 +36,7 @@ var SSFrontend = {};
 			var dialogMask = $('#__editor-mask');
 			// create the backdrop
 			if (dialogMask.length == 0) {
-				dialogMask = $('<div id="__editor-mask">Loading...</div>').appendTo('body');
+				dialogMask = $('<div id="__editor-mask"></div>').appendTo('body');
 			}
 
 			var maskHeight = $(document).height();
@@ -166,6 +166,7 @@ var SSFrontend = {};
 				var elemParams = $(this).attr("id").split("|");
 				var typeInfo = elemParams[0] + '-' + elemParams[2];
 				$this.updateFieldContents(this, typeInfo, 'raw');
+				$(this).addClass('__editable');
 
 				// it's safe to bind now, because updateFieldContents processes syncronously
 				$(this).click(function () {
@@ -196,6 +197,7 @@ var SSFrontend = {};
 				var elemParams = $(this).attr("id").split("|");
 				var typeInfo = elemParams[0] + '-' + elemParams[2];
 				$this.updateFieldContents(this, typeInfo, 'escaped');
+				$(this).removeClass('__editable');
 	       	});
 		},
 
