@@ -1,4 +1,4 @@
-#FrontendEditingControls { position: fixed; top: 100px; right: 10px; background-color: #131F11; padding: 20px; }
+#FrontendEditingControls { position: fixed; top: 100px; right: 10px; background-color: #131F11; padding: 20px; z-index: 200; }
 #FrontendEditingControls { -moz-box-shadow: 4px 4px 5px #222; -webkit-box-shadow: 4px 4px 5px #222; -moz-border-radius: 10px; -webkit-border-radius: 10px; }
 
 #FrontendEditingControls input { background-color: #eef5ff; font-size: 10px; padding: 5px;  }
