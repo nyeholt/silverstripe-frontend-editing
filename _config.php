@@ -17,6 +17,8 @@ Director::addRules(100, array(
 // DataObject::add_extension('Page', 'Lockable');
 //
 // Then, in templates, use $EditableField(<fieldname>) to have an html editable field
+//
+
 
 /**
  * A simple helper function to deal with DB quoting.

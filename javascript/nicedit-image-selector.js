@@ -36,8 +36,8 @@
 
 			var form = new bkElement('form').addEvent('submit',this.submit.closureListener(this));
 			form.setContent(
-				'<div><label>URL</label><input type="text" name="href" value="http://" />' +
-				'<div><label>Alternate Text</label><input type="text" name="altText" value="" />' +
+				'<div><label>URL</label><input type="text" name="href" value="http://" /></div>' +
+				'<div><label>Alternate Text</label><input type="text" name="altText" value="" /></div>' +
 				'<div><label>The tooltip for this image</label><input type="text" name="title" /></div>' +
 				'<div style="margin-top: 20px;"><input type="submit" value="Save" /><input type="button" value="Cancel" class="cancelButton" /></div>'
 			);

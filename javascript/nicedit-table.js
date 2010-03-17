@@ -296,3 +296,5 @@ window.nicEditorTableButton = nicEditorAdvancedButton.extend({
 		}
 	 }
 });
+
+nicEditors.registerPlugin(nicPlugin,tableOptions);

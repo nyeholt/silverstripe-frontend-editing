@@ -80,16 +80,37 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 	}
 
 	/**
-	 * Indicates whether the current user can edit the current fields on the frontend
+	 * Are we viewing this page on the live site?
 	 *
 	 * @return boolean
 	 */
-	public function FrontendEditAllowed()
+	public function LiveSite()
+	{
+		return Versioned::current_stage() == 'Live';
+	}
+
+	/**
+	 * Indicates whether the current user can edit the current fields on the frontend
+	 *
+	 * @param String $checkStage
+	 *			If set, the stage will be checked to ensure that we're on that stage - this
+	 *			allows us to check if the current user has got access to edit (regardless of whether they're on the
+	 *			right stage), and to check including the right stage
+	 *
+	 * @return boolean
+	 */
+	public function FrontendEditAllowed($checkStage=true)
 	{
 		$isCreator = Member::currentUserID() == $this->owner->CreatorID;
 		$canEdit = $this->owner->canEdit();
 		$frontendPerm = Permission::check(self::CAN_FRONTEND_EDIT);
-		$stage = Versioned::current_stage() == 'Stage';
+
+		if ($checkStage === true) {
+			$stage = Versioned::current_stage() == 'Stage';
+		} else {
+			$stage = true;
+		}
+
 		if (!($isCreator || $canEdit || $frontendPerm) || !$stage) {
 			return false;
 		}
@@ -110,20 +131,24 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 	 */
 	public function EditableField($fieldName, $tagType='div')
 	{
-		$fieldValue = $this->owner->getField($fieldName);
+		Requirements::javascript('frontend-editing/javascript/jquery-1.4.1.min.js');
+		Requirements::javascript('frontend-editing/javascript/edit-controls.js');
+		Requirements::css('frontend-editing/css/edit-controls.css');
+
 		// output only if the user can edit, otherwise we just output the field
 		if ($this->FrontendEditAllowed()) {
 			// try and take the lock
 			$lock = $this->owner->getEditingLocks(true);
-			Requirements::css('frontend-editing/javascript/page-editor.css');
+			Requirements::css('frontend-editing/css/page-editor.css');
 			// we can't edit if there's a lock and that locking user is NOT us
 			if ($lock != null && $lock['user'] != Member::currentUser()->Email) {
-				return '<div class="__editable_locked">'.$fieldValue.'<p class="lockInfo">'.sprintf(_t('FrontendEdit.LOCKED_BY', 'Locked by %s until %s'), $lock['user'], $lock['expires']).'</p></div>';
+				return '<div class="__editable_locked">'.$this->owner->XML_val($fieldName).'<p class="lockInfo">'.sprintf(_t('FrontendEdit.LOCKED_BY', 'Locked by %s until %s'), $lock['user'], $lock['expires']).'</p></div>';
 			} else {
 				Requirements::css('frontend-editing/javascript/jstree/themes/default/style.css');
 
-//				Requirements::javascript('frontend-editing/javascript/jquery-1.4.1.min.js');
-//				Requirements::javascript('frontend-editing/javascript/jstree-v1b2/jquery.jstree.js');
+				Requirements::css('frontend-editing/javascript/jquery.jgrowl.css');
+				Requirements::javascript('frontend-editing/javascript/jquery.jgrowl_minimized.js');
+
 				Requirements::javascript('frontend-editing/javascript/jstree-0.9.9a2/jquery.tree.js');
 				Requirements::javascript('frontend-editing/javascript/jquery.json.js');
 				Requirements::javascript('frontend-editing/javascript/nicEditDev.js');
@@ -131,6 +156,7 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 				Requirements::javascript('frontend-editing/javascript/nicedit-tree.js');
 				Requirements::javascript('frontend-editing/javascript/nicedit-url-selector.js');
 				Requirements::javascript('frontend-editing/javascript/nicedit-image-selector.js');
+				
 				Requirements::javascript('frontend-editing/javascript/page-editor.js');
 
 				$base = Director::baseURL();
@@ -138,18 +164,18 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 				$frontendEditor = <<<HTML
 				window.SILVERSTRIPE_BASE = '$base';
 				jQuery().ready(function() {
-					var frontendEditor = new SSFrontend.FrontendEditor({saveUrl:"$urlPrefix/frontendSave", commitUrl: "$urlPrefix/frontendCommit"});
+					var frontendEditor = new SSFrontend.FrontendEditor({saveUrl:"$urlPrefix/frontendSave", commitUrl: "$urlPrefix/frontendCommit", contentUrl: "$urlPrefix/getcontent"});
 				});
 HTML;
 				$lockUpdate = $this->owner->getLockUpdater();
 				Requirements::customScript($frontendEditor, 'frontend_editor_script');
 				Requirements::customScript($lockUpdate, 'lock_updater_for_'.$this->owner->ID);
 
-				$urlSegment = $this->owner->URLSegment;
+				
 				$ID = $this->owner->ID;
-
+				$typeInfo = $this->owner->ClassName.'-'.$ID;
 				// now add the wrapped field
-				return '<'.$tagType.' class="__editable __wysiwyg-editable" id="'.$urlSegment.'|'.$ID.'|'.$fieldName.'">'.$fieldValue.'</'.$tagType.'>';
+				return '<'.$tagType.' class="__wysiwyg-editable" id="'.$typeInfo.'|'.$ID.'|'.$fieldName.'">'.$this->owner->XML_val($fieldName).'</'.$tagType.'>';
 			}
 		} else {
 			return $this->owner->XML_val($fieldName);

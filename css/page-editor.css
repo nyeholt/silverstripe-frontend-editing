@@ -1,11 +1,12 @@
 /* For nicedit rethemeing */
 div.nicEdit-panelContain { overflow : hidden; height: 50px; width : 100%; background: #0099FF url('toolbar.png') repeat-x; }
-div.nicEdit-panel {margin-top : 14px; margin-left: 14px; zoom : 1; overflow : hidden}
+div.nicEdit-panel {margin-top : 14px; margin-left: 14px; zoom: 1; overflow : hidden}
 
+#__editor-mask { color: #fff; font-size: 52px; font-weight: bold; text-align: center; padding-top: 104px; position:absolute; top: 0; left: 0; z-index:900; background:#666 url('ajax-loader.gif') no-repeat 50% 20%; display:none; width: 100%; height: 100%; opacity: 0.8}
 #__ajax-load { display: none; position: fixed; top: 5px; right: 5px; z-index: 250 }
 .nicEdit-pane { position: fixed; top: 50px; }
 #__tree-container { height: 400px; overflow: auto; }
-#__toolbox { display: none; z-index: 200; position: fixed; top: 0; left: 0; width: 100%; height: 50px; }
+#__toolbox { display: none; z-index: 200; position: fixed; top: 0; left: 0; width: 100%; height: 50px; -moz-box-shadow: 2px 2px 5px #222; -webkit-box-shadow: 2px 2px 5px #222; }
 #__toolbox a { color: #0a0; font-size: small; }
 #__toobox-actions { height: 30px; }
 #__toolbox-opener { }
@@ -14,7 +15,13 @@ div.nicEdit-panel {margin-top : 14px; margin-left: 14px; zoom : 1; overflow : hi
 #__toolbox-opener { font-size: x-small;cursor: pointer;background-color: #a00; color: #fff; border: 1px solid black; position: fixed; top: 0; right: 0; width: 80px; height: 20px; }
 #__message-box { margin-top: 20px; margin-right: 20px; padding: 5px; font-size: 12px; font-weight: bold; background-color: #131F11; width: 400px; float: right; color: #fff; display: none; }
 .__editable { border: 1px dashed #ccc; }
+.__editable_empty { padding-bottom: 1em; }
 .__editor-dialog {font-size: small; background-color: #fff; position: fixed; top: 100px; left: 200px; width: 400px; border: 1px solid #aaa; padding: 1em}
 
 .__editable_locked { border: 1px dashed #ff0000 }
 .lockInfo { font-size: 75%; text-align: right; background-color: #ccc; color: #666; margin: 0px !important; padding: 0.5em; }
+
+.nicEdit-pane form label { display: block; font-size: 10px; }
+.nicEdit-pane form label.inlineLabel { display: inline; }
+
+#jGrowl div.message { background: none; color: #fff; border: none; }

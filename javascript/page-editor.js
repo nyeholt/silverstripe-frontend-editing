@@ -12,103 +12,142 @@ var SSFrontend = {};
 
 		ssEditor = this;
 		this.options = options;
-		
+
 		this.wysiwygElements = options.editorClass || "__wysiwyg-editable";
 		this.pageEditor = null;
-		
+
 		this.nicInstances = [];
 		this.init();
+
 	};
 
 	SSFrontend.FrontendEditor.prototype = {
 		init: function () {
 			var $this = this;
 			var autoSaveTimer = null;
-			
-			$this.registerPlugins();
+
+			this.contentChanged = false;
+			this.registerPlugins();
+			this.initialiseToolbars();
+
+		},
+
+		maskScreen: function () {
+			var dialogMask = $('#__editor-mask');
+			// create the backdrop
+			if (dialogMask.length == 0) {
+				dialogMask = $('<div id="__editor-mask"></div>').appendTo('body');
+			}
+
+			var maskHeight = $(document).height();
+			var maskWidth = $(window).width();
+
+			//Set height and width to mask to fill up the whole screen
+			dialogMask.css({'width':maskWidth,'height':maskHeight, opacity: '0.8'});
+			dialogMask.show();
+		},
+		clearMask: function () {
+			$('#__editor-mask').hide();
+		},
+
+		/**
+		 * Initialise the toolbars used by the editor
+		 */
+		initialiseToolbars: function () {
+			var $this = this;
+			var autoSaveTimer = null;
 
 			var firstChild = $('body').children()[0];
-			
+
 			if (firstChild != null) {
 				var toolboxBuffer = $("<div id='__toolbox-buffer' style=''></div>").prependTo($('body'));
 				var toolbox = $("<div id='__toolbox'></div>").prependTo($('body'));
 				toolbox.append("<img id='__ajax-load' src='frontend-editing/javascript/ajax-loader.gif' /><div id='__message-box'></div>");
 				toolbox.append("<div id='__toolboxcontent'><div id='__editor-panel' ></div></div>");
 
-				var toolboxControl = $("<div id='__toolbox-control'></div>").appendTo(toolbox);
-				
-				var toolboxOpener = $("<div id='__toolbox-opener'>Show Editor</div>").prependTo($('body'));
+				var toolboxCloser = $('#FE_SwitchOff').hide();
+				if (toolboxCloser.length == 0) {
+					toolboxCloser = $("<div id='__toolbox-control'></div>").appendTo(toolbox);
+				}
 
-				toolboxControl.click(
+				var toolboxOpener = $('#FE_SwitchOn');
+				if (toolboxOpener.length == 0) {
+					toolboxOpener = $("<div id='__toolbox-opener'>Show Editor</div>").prependTo($('body'));
+				}
+
+				// when closing
+				toolboxCloser.click(
 					function() {
+						if ($this.contentChanged && !confirm("Any changes made will be lost. Are you sure?")) {
+							return false;
+						}
+
+						$this.maskScreen();
 						toolbox.hide();
 						toolboxBuffer.hide();
+						toolboxCloser.hide();
 						toolboxOpener.show();
 
-						// remove all editor bits and pieces
-						var nicInstances = $this.getEditorInstances();
-						for (var i = 0; i < nicInstances.length; i++) {
-							nicInstances[i].remove();
-						}
-						$('#__editor-panel').html("");
-						// reset the global cache of editors
-						nicEditors.editors = [];
-						
+						$this.unconvertEditableRegions();
+
 						if (autoSaveTimer != null) {
 							clearInterval(autoSaveTimer);
 						}
+
+						// delay the clearing of the mask - makes sure that everything has inited and stuff...
+						// It's also somewhat deliberate so that users have a moment to register that yes, there's something
+						// completely different about the interface now
+						setTimeout(function () {
+							$this.clearMask();
+						}, 500);
+
+						return false;
 					}
 				);
 
-				// "<a href='"+BASE_URL+"'>View Live</a>&nbsp;/&nbsp;<a href='javascript: void(0);' id='__commit-all'>Commit Changes</a>";
-				var toolboxActions = $('#__toolbox-actions');
-				var commitLink = $("<a href='javascript: void(0);'>Publish</a>").appendTo(toolboxActions);
-				$("<span>&nbsp;/&nbsp;</span>").appendTo(toolboxActions);
-				var createLink = $("<a href='javascript: void(0);'>Add New Page</a>").appendTo(toolboxActions);
-				
-				commitLink.click(function() {
-					var instances = $this.getEditorInstances();
-					// commit all changed items (but only once)
-					var committed = new Array();
-					for (var i = 0, c = instances.length; i < c; i++) {
-						elemParams = $(instances[i].elm).attr("id").split("|");
-						var pagePath = elemParams[0];
-						// only want to commit a page ONCE 
-						if ($.inArray(pagePath, committed) < 0) {
-							committed.push(pagePath);
-							$.post($this.options.commitUrl, {url: pagePath}, function () {
-								$this.message("Committed all changes");
-								// now reload, because we no longer have the lock on this page
-								var join = location.href.indexOf("?") > 0 ? "&" : "?";
-								location.href = location.href + join + "stage=Live";
-							});
-						}
-					}
-				});
-
+				// when opening
 				toolboxOpener.click(
 					function() {
+						$this.maskScreen();
 						$this.convertEditableRegions();
 
 						toolbox.show();
 						toolboxBuffer.show();
 						toolboxOpener.hide();
-						
+						toolboxCloser.show();
+
 						// auto save every 3 minutes
-						var autoSaveTimer = setInterval(function () {
+						autoSaveTimer = setInterval(function () {
 							// autosave!
 						}, 180000);
+						
+						// delay the clearing of the mask - makes sure that everything has inited and stuff...
+						// It's also somewhat deliberate so that users have a moment to register that yes, there's something
+						// completely different about the interface now
+						setTimeout(function () {
+							$this.clearMask();
+						}, 500);
 					}
 				);
-				
-				toolboxOpener.click();
-				
-				$('#__ajax-load').ajaxStart(function() { jQuery(this).show(); });
-				$('#__ajax-load').ajaxStop(function() { jQuery(this).hide(); });
+
+				$('#__ajax-load').ajaxStart(function() {jQuery(this).show();});
+				$('#__ajax-load').ajaxStop(function() {jQuery(this).hide();});
+
+				// and finally, show the toolbox if we were opened in direct editing mode
+				if (location.href.indexOf('startEditing=true') > 0) {
+					toolboxOpener.click();
+				}
 			}
 		},
-		
+
+		/**
+		 * Converts regions into WYSIWYG cells
+		 * TODO: Needs a big cleanup to properly move relevant code out into a modular structure. This
+		 * should also handle non-wysiwyg fields.
+		 */
 		convertEditableRegions: function () {
+			this.contentChanged = false;
+
 			var buttons = ['sssave','bold','italic','underline','left','center',
 	       		'right','justify','ol','ul','fontSize','fontFamily','fontFormat',
 	       		'indent','outdent','insertlink','unlink','insertimage', 'forecolor',
@@ -118,13 +157,76 @@ var SSFrontend = {};
 	       		"removeformat":13,"right":14,"sssave":25,"strikethrough":16,"subscript":17,
 	       		"superscript":18,"ul":19,"underline":20,"image":21,"insertimage":21,"link":22,"unlink":23,
 	       		"close":24,"arrow":26,"insertlink": 22}
-
+			
 	       	var $this = this;
 	       	this.pageEditor = new nicEditor({buttonList: buttons, iconList: icons, iconsPath: 'frontend-editing/javascript/nicEditorIcons.gif'});
 	       	this.pageEditor.setPanel('__editor-panel');
 	       	$('.'+$this.wysiwygElements).each(function () {
-	       		$this.pageEditor.addInstance(this);
+				$this.pageEditor.addInstance(this);
+				var elemParams = $(this).attr("id").split("|");
+				var typeInfo = elemParams[0] + '-' + elemParams[2];
+				$this.updateFieldContents(this, typeInfo, 'raw');
+				$(this).addClass('__editable');
+
+				// it's safe to bind now, because updateFieldContents processes syncronously
+				$(this).click(function () {
+					$this.contentChanged = true;
+				});
+				$(this).keydown(function () {
+					$this.contentChanged = true;
+				})
 	       	});
+		},
+
+		/**
+		 * Do the reverse of the above - make sure everything's back to 'normal' for the page
+		 */
+		unconvertEditableRegions: function () {
+			var $this = this;
+			
+			// remove all editor bits and pieces
+			var nicInstances = this.getEditorInstances();
+			for (var i = 0; i < nicInstances.length; i++) {
+				nicInstances[i].remove();
+			}
+			$('#__editor-panel').html("");
+			// reset the global cache of editors
+			nicEditors.editors = [];
+
+			$('.'+$this.wysiwygElements).each(function () {
+				var elemParams = $(this).attr("id").split("|");
+				var typeInfo = elemParams[0] + '-' + elemParams[2];
+				$this.updateFieldContents(this, typeInfo, 'escaped');
+				$(this).removeClass('__editable');
+	       	});
+		},
+
+		/**
+		 * Switches field contents from being display ready to edit ready
+		 * This is done because silverstripe will sometimes pre-process content that gets displayed
+		 *
+		 * We do this synchronously so that users never edit content before it's fully loaded and ready
+		 * to be changed
+		 */
+		updateFieldContents: function (element, typeInfo, format) {
+			var $this = this;
+			var request = $this.options.contentUrl + '/' + typeInfo + '/' + format;
+			$.ajax({
+				async: false,
+				url: request,
+				success: function (data) {
+					var response = $.parseJSON(data);
+					if (!response.success) {
+						alert("There was an error initialising the data for " + typeInfo);
+					} else {
+						$(element).html(response.data);
+						$(element).removeClass('__editable_empty');
+						if (response.data == null) {
+							$(element).addClass('__editable_empty');
+						}
+					}
+				}
+			});
 		},
 
 		/**
@@ -140,6 +242,7 @@ var SSFrontend = {};
 
 		saveContents: function (content, id, selectedInstances) {
 			var $this = this;
+			
 			var instances = this.getEditorInstances();
 			// get all the editors and package them up for saving
 			var postArgs = {};
@@ -159,6 +262,7 @@ var SSFrontend = {};
 						pageArgs = {};
 					}
 
+					// need to strip chars here, for some reason it gets horribly munged
 					var cleanedContent = instances[i].getContent().replace(/\[sitetree_link%20id=/g, "[sitetree_link id=");
 					pageArgs[pageElement] = cleanedContent;
 					pageArgs["ID"] = pageId;
@@ -167,9 +271,9 @@ var SSFrontend = {};
 
 				var postData = $.toJSON(postArgs);
 				$.post($this.options.saveUrl, {data: postData, ajax: true}, function () {
-					$this.message("Saved ");
+					$this.message("Saved");
+					$this.contentChanged = false;
 				});
-				
 			} else { 
 				$this.message("Failed to save");
 			}
@@ -209,158 +313,28 @@ var SSFrontend = {};
 			});
 
 			nicEditors.registerPlugin(nicPlugin, ssSaveOptions);
-			nicEditors.registerPlugin(nicPlugin,tableOptions);
+
+
+
+//				commitLink.click(function() {
+//					var instances = $this.getEditorInstances();
+//					// commit all changed items (but only once)
+//					var committed = new Array();
+//					for (var i = 0, c = instances.length; i < c; i++) {
+//						elemParams = $(instances[i].elm).attr("id").split("|");
+//						var pagePath = elemParams[0];
+//						// only want to commit a page ONCE
+//						if ($.inArray(pagePath, committed) < 0) {
+//							committed.push(pagePath);
+//							$.post($this.options.commitUrl, {url: pagePath}, function () {
+//								$this.message("Committed all changes");
+//								// now reload, because we no longer have the lock on this page
+//								var join = location.href.indexOf("?") > 0 ? "&" : "?";
+//								location.href = location.href + join + "stage=Live";
+//							});
+//						}
+//					}
+//				});
 		}
 	};
 })(jQuery);
-
-
-/*
-var urlSelectorOptions = {
-	buttons : {
-		'urlsel' : {name : 'Select Link', type : 'urlSelector', tags : ['A']}
-	}
-}
-
-var urlSelector = nicEditorAdvancedButton.extend({
-	width: '600px',
-
-	addForm : function(f,elm) {
-		this.form = new bkElement('form').addEvent('submit',this.submit.closureListener(this));
-		this.pane.append(this.form);
-		this.inputs = {};
-
-		jQuery("#__tree-container").show();
-		var contain = new bkElement('div').appendTo(this.form);
-		
-		jQuery(contain).append(jQuery('#__tree-container'));
-		
-		var domain = location.protocol + "//" + location.host;
-		var imgUrl = elm.href; // .replace(domain, "");
-		if (imgUrl != null) {
-			imgUrl = imgUrl.replace(domain, "");
-		} else {
-			imgUrl = "";
-		}
-
-		this.inputs['href'] = new bkElement('input').setAttributes({'id': '__tree-selection', 'value' : imgUrl, 'type' : 'text'}).setStyle({margin : '2px 0', fontSize : '13px', 'float' : 'left', height : '20px', border : '1px solid #ccc', overflow : 'hidden'}).appendTo(contain);
-
-		new bkElement('input').setAttributes({'type' : 'submit'}).setStyle({backgroundColor : '#efefef',border : '1px solid #ccc', margin : '3px 0', 'float' : 'left', 'clear' : 'both'}).appendTo(this.form);
-		this.form.onsubmit = bkLib.cancelEvent;	
-	},
-
-	addPane : function() {
-		this.im = this.ne.selectedInstance.selElm().parentTag('A');
-		jQuery('body').append('<div id="__tree-container"><ul id="__content-tree"></ul></div>');
-
-		// create the tree
-		var tree = jQuery('#__content-tree');
-		contentTree = tree.treeview ({
-			url: TREE_URL+"?storeName="+STORE_NAME
-		});
-
-		
-		this.addForm({}, this.im);
-	},
-
-	submit : function(e) {
-		var href = this.inputs['href'].value;
-		if(href == "" || href == "http://") {
-			showMessage("You must enter a URL to insert");
-			return false;
-		}
-
-		this.removePane();
-
-		if(!this.im) {
-			var tmp = 'javascript:nicTemp();';
-			this.ne.nicCommand("createlink",tmp);
-			this.im = this.findElm('A','href',tmp);
-		}
-		if(this.im) {
-			this.im.setAttributes({
-				href : this.inputs['href'].value,
-			});
-		}
-	}
-});
-
-nicEditors.registerPlugin(nicPlugin,urlSelectorOptions);
-
-var imageSelectorOptions = {
-	buttons : {
-		'imgsel' : {name : 'Select Image', type : 'imageSelector', tags : ['IMG']}
-	},
-};
-
-var imageSelector = nicEditorAdvancedButton.extend({
-	width: '600px',
-	
-	addForm : function(f,elm) {
-		this.form = new bkElement('form').addEvent('submit',this.submit.closureListener(this));
-		this.pane.append(this.form);
-		this.inputs = {};
-
-		jQuery("#__tree-container").show();
-		var contain = new bkElement('div').appendTo(this.form);
-		
-		jQuery(contain).append(jQuery('#__tree-container'));
-		
-		var domain = location.protocol + "//" + location.host;
-		var imgUrl = elm.src; // .replace(domain, "");
-		if (imgUrl != null) {
-			imgUrl = imgUrl.replace(domain, "");
-		} else {
-			imgUrl = "";
-		}
-
-		this.inputs['src'] = new bkElement('input').setAttributes({'id': '__tree-selection', 'value' : imgUrl, 'type' : 'text'}).setStyle({margin : '2px 0', fontSize : '13px', 'float' : 'left', height : '20px', border : '1px solid #ccc', overflow : 'hidden'}).appendTo(contain);
-
-		new bkElement('input').setAttributes({'type' : 'submit'}).setStyle({backgroundColor : '#efefef',border : '1px solid #ccc', margin : '3px 0', 'float' : 'left', 'clear' : 'both'}).appendTo(this.form);
-		this.form.onsubmit = bkLib.cancelEvent;	
-	},
-
-	addPane : function() {
-		this.im = this.ne.selectedInstance.selElm().parentTag('IMG');
-		jQuery('body').append('<div id="__tree-container"><ul id="__content-tree"></ul></div>');
-		// create the tree
-		var tree = jQuery('#__content-tree');
-		contentTree = tree.treeview ({
-			url: TREE_URL+"?storeName="+STORE_NAME
-		});
-
-		
-		this.addForm({}, this.im);
-	},
-
-	submit : function(e) {
-		var src = this.inputs['src'].value;
-		if(src == "" || src == "http://") {
-			showMessage("You must enter a Image URL to insert");
-			return false;
-		}
-
-		this.removePane();
-
-		if(!this.im) {
-			var tmp = 'javascript:nicImTemp();';
-			this.ne.nicCommand("insertImage",tmp);
-			this.im = this.findElm('IMG','src',tmp);
-		}
-		if(this.im) {
-			this.im.setAttributes({
-				src : this.inputs['src'].value,
-			});
-		}
-	}
-});
-
-nicEditors.registerPlugin(nicPlugin,imageSelectorOptions);
-*/
-function treeNodeClicked(val)
-{
-	// fill in the __tree-selection field
-	var $this = this;
-	var bits = val.split('|');
-	jQuery('#__tree-selection').val(bits[2] + "?" + bits[1]);
-}
