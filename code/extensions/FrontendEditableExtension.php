@@ -59,6 +59,11 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 		$ids = $members->column('ID');
 		$unames = $members->column('getTitle');
 		$users = array_combine($ids, $unames);
+
+		if (!$this->owner->CreatorID) {
+			$this->owner->CreatorID = Member::currentUserID();
+		}
+
 		$fields->addFieldToTab('Root.Content.Main', new DropdownField('CreatorID', 'Owner', $users), 'Content');
 	}
 
