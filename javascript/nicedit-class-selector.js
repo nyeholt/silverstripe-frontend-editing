@@ -23,16 +23,17 @@
 			var rules = {}
 			for (var i=0; i < document.styleSheets.length; i++) {
 				var x = 0;
-				styleSheet = document.styleSheets[i];
+				var styleSheet = document.styleSheets[i];
+				if (styleSheet) {
 					// otherwise get them individually
 					do {
-						cssRule = styleSheet.cssRules[x];
+						var cssRule = styleSheet.cssRules ? styleSheet.cssRules[x] : styleSheet.rules[x];
 						if(cssRule && cssRule.selectorText && cssRule.selectorText.indexOf('.wysiwyg-') == 0) {
 							rules[cssRule.selectorText] = cssRule.selectorText.replace(/.wysiwyg-/, '');
 						}
 						x++;
 					} while (cssRule);
-
+				}
 			}
 			return rules;
 		},
