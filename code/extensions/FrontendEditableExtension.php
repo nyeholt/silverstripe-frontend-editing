@@ -106,6 +106,9 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 	 */
 	public function FrontendEditAllowed($checkStage=true)
 	{
+		if (!Member::currentUserID()) {
+			return false;
+		}
 		$isCreator = Member::currentUserID() == $this->owner->CreatorID;
 		$canEdit = $this->owner->canEdit();
 		$frontendPerm = Permission::check(self::CAN_FRONTEND_EDIT);
@@ -161,6 +164,7 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 				Requirements::javascript('frontend-editing/javascript/nicedit-tree.js');
 				Requirements::javascript('frontend-editing/javascript/nicedit-url-selector.js');
 				Requirements::javascript('frontend-editing/javascript/nicedit-image-selector.js');
+				Requirements::javascript('frontend-editing/javascript/nicedit-class-selector.js');
 				
 				Requirements::javascript('frontend-editing/javascript/page-editor.js');
 
