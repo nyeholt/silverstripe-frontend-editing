@@ -83,16 +83,9 @@
 						var bits = node.id.split('-');
 						if (bits[1]) {
 							var internalHref = $('[name=internalhref]');
-							var internalHrefVal = internalHref.val();
 							internalHref.val('[sitetree_link id=' + bits[1] + ']');
 							var linkTitle = $('[name=linkTitle]');
-							var linkTitleVal = linkTitle.val();
-							var nodeTitle = node.getAttribute('title');
 							linkTitle.val(node.getAttribute('title'));
-							var linkTitle = $('[name=linkTitle]');
-							if (linkTitle != null) {
-								
-							}
 						}
 					},
 					onsearch: function (nodes, tree) {
@@ -132,8 +125,6 @@
 				// see if there's a text selection at all
 				var curSel = this.ne.selectedInstance.getRng();
 				if (curSel) {
-					// TODO - will this break in ie 7 and less? PROBABLY
-					// @see http://cutesoft.net/forums/thread/58988.aspx for a possible fix...
 					if (curSel.htmlText) {
 						curSel = curSel.htmlText;
 					} else {
