@@ -131,6 +131,8 @@
 					title : $('[name=title]').val()
 				});
 			}
+			e.preventDefault();
+			return false;
 		}
 	});
 

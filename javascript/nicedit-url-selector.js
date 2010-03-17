@@ -190,7 +190,9 @@
 
 				this.ln.innerHTML = linkText;
 			}
-			
+
+			e.preventDefault();
+			return false;
 		}
 	});
 

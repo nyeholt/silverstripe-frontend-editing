@@ -1,3 +1,4 @@
+<% if CurrentMember %>
 <div id="FrontendEditingControls">
 	<% if FrontendEditAllowed(butOnLiveStage)  %>
 	<% if LiveSite %>
@@ -11,3 +12,4 @@
 	<input type="button" value="<% _t('FrontendEdit.STOP_EDITING','Close Editor') %>" id="FE_SwitchOff"/>
 	<% end_if %>
 </div>
+<% end_if %>
