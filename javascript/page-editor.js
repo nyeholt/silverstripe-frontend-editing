@@ -149,7 +149,7 @@ var SSFrontend = {};
 			this.contentChanged = false;
 
 			var buttons = ['sssave','bold','italic','underline','left','center',
-	       		'right','justify','ol','ul','fontSize','fontFamily','fontFormat',
+	       		'right','justify','ol','ul','applyclass','fontFormat', 'removeformat',
 	       		'indent','outdent','insertlink','unlink','insertimage', 'forecolor',
 	       		'bgcolor','xhtml', 'table'];
 	       	var icons = {"xhtml":1,"bgcolor":2,"forecolor":3,"bold":4,"center":5,

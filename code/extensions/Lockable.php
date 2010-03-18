@@ -101,6 +101,10 @@ JSCRIPT;
 			$member = Member::currentUser();
 		}
 
+		if (!$member) {
+			return;
+		}
+
 		// set the updated lock expiry based on now + lock timeout
 		$this->owner->LastEditor = $member->Email;
 		$this->owner->LockExpiry = date('Y-m-d H:i:s', time() + self::$lock_time);
