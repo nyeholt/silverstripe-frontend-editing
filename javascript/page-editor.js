@@ -161,7 +161,13 @@ var SSFrontend = {};
 	       	var $this = this;
 	       	this.pageEditor = new nicEditor({buttonList: buttons, iconList: icons, iconsPath: 'frontend-editing/javascript/nicEditorIcons.gif'});
 	       	this.pageEditor.setPanel('__editor-panel');
-	       	$('.'+$this.wysiwygElements).each(function () {
+			
+			var elementsToConvert = $('.'+$this.wysiwygElements);
+
+			var statusDiv = $('<div class="__editorLoadStatus">').appendTo('body');
+			statusDiv.html('<p>Loading 0%</p>');
+
+	       	elementsToConvert.each(function (index) {
 				$this.pageEditor.addInstance(this);
 				var elemParams = $(this).attr("id").split("|");
 				var typeInfo = elemParams[0] + '-' + elemParams[2];
@@ -175,7 +181,10 @@ var SSFrontend = {};
 				$(this).keydown(function () {
 					$this.contentChanged = true;
 				})
+				
+				statusDiv.html('<p>Loading ' + (((index + 1) / elementsToConvert.length) * 100) + '%</p>');
 	       	});
+			statusDiv.remove();
 		},
 
 		/**
@@ -193,12 +202,18 @@ var SSFrontend = {};
 			// reset the global cache of editors
 			nicEditors.editors = [];
 
-			$('.'+$this.wysiwygElements).each(function () {
+			var elementsToConvert = $('.'+$this.wysiwygElements);
+			var statusDiv = $('<div class="__editorLoadStatus">').appendTo('body');
+			statusDiv.html('<p>Loading 0%</p>');
+
+			elementsToConvert.each(function (index) {
 				var elemParams = $(this).attr("id").split("|");
 				var typeInfo = elemParams[0] + '-' + elemParams[2];
 				$this.updateFieldContents(this, typeInfo, 'escaped');
 				$(this).removeClass('__editable');
+				statusDiv.html('<p>Loading ' + (((index + 1) / elementsToConvert.length) * 100) + '%</p>');
 	       	});
+			statusDiv.remove();
 		},
 
 		/**
