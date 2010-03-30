@@ -182,7 +182,7 @@ var SSFrontend = {};
 					$this.contentChanged = true;
 				})
 				
-				statusDiv.html('<p>Loading ' + (((index + 1) / elementsToConvert.length) * 100) + '%</p>');
+				statusDiv.html('<p>Loading ' + (((index + 1) / elementsToConvert.length) * 100).toFixed(2) + '%</p>');
 	       	});
 			statusDiv.remove();
 		},
@@ -211,7 +211,7 @@ var SSFrontend = {};
 				var typeInfo = elemParams[0] + '-' + elemParams[2];
 				$this.updateFieldContents(this, typeInfo, 'escaped');
 				$(this).removeClass('__editable');
-				statusDiv.html('<p>Loading ' + (((index + 1) / elementsToConvert.length) * 100) + '%</p>');
+				statusDiv.html('<p>Loading ' + (((index + 1) / elementsToConvert.length) * 100).toFixed(2) + '%</p>');
 	       	});
 			statusDiv.remove();
 		},
