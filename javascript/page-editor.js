@@ -181,7 +181,6 @@ var SSFrontend = {};
 				$(this).keydown(function () {
 					$this.contentChanged = true;
 				})
-				
 				statusDiv.html('<p>Loading ' + (((index + 1) / elementsToConvert.length) * 100).toFixed(2) + '%</p>');
 	       	});
 			statusDiv.remove();

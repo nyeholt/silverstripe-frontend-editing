@@ -27,10 +27,15 @@
 				if (styleSheet) {
 					// otherwise get them individually
 					do {
-						var cssRule = styleSheet.cssRules ? styleSheet.cssRules[x] : styleSheet.rules[x];
-						if(cssRule && cssRule.selectorText && cssRule.selectorText.indexOf('.wysiwyg-') == 0) {
-							rules[cssRule.selectorText] = cssRule.selectorText.replace(/.wysiwyg-/, '');
+						try {
+							var cssRule = styleSheet.cssRules ? styleSheet.cssRules[x] : styleSheet.rules[x];
+							if(cssRule && cssRule.selectorText && cssRule.selectorText.indexOf('.wysiwyg-') == 0) {
+								rules[cssRule.selectorText] = cssRule.selectorText.replace(/.wysiwyg-/, '');
+							}
+						} catch (someErrorWeIgnore) {
+							cssRule = null;
 						}
+						
 						x++;
 					} while (cssRule);
 				}
