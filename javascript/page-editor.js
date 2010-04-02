@@ -148,7 +148,7 @@ var SSFrontend = {};
 		convertEditableRegions: function () {
 			this.contentChanged = false;
 
-			var buttons = ['sssave','bold','italic','underline','left','center',
+			var buttons = ['sssave','sspublish','bold','italic','underline','left','center',
 	       		'right','justify','ol','ul','applyclass','fontFormat', 'removeformat',
 	       		'indent','outdent','insertlink','unlink','insertimage', 'forecolor',
 	       		'bgcolor','xhtml', 'table'];
@@ -254,6 +254,9 @@ var SSFrontend = {};
 			return new Array();
 		},
 
+		/**
+		 * Save the contents of the current page, into whichever objects are relevant
+		 */
 		saveContents: function (content, id, selectedInstances) {
 			var $this = this;
 			
@@ -284,11 +287,57 @@ var SSFrontend = {};
 				}
 
 				var postData = $.toJSON(postArgs);
-				$.post($this.options.saveUrl, {data: postData, ajax: true}, function () {
-					$this.message("Saved");
-					$this.contentChanged = false;
+				$.post($this.options.saveUrl, {data: postData, ajax: true}, function (data) {
+					var response = $.parseJSON(data);
+					if (response.success) {
+						$this.message(response.message);
+						$this.contentChanged = false;
+					} else {
+						$this.message(response.message);
+					}
 				});
 			} else { 
+				$this.message("Failed to save");
+			}
+		},
+
+		/**
+		 * Publish all content that's editable
+		 */
+		publishContent: function () {
+			var $this = this;
+
+			if ($this.contentChanged) {
+				if (!confirm("Any changes made will be lost, click cancel, save changes, and try again, or OK to publish anyway")) {
+					return;
+				}
+			}
+
+			var instances = this.getEditorInstances();
+			// get all the editors and package them up for saving
+			var postArgs = {};
+			var toPublish = {};
+			if (instances.length > 0) {
+				for (var i = 0, c = instances.length; i < c; i++) {
+					elemParams = $(instances[i].elm).attr("id").split("|");
+					var typeInfo = elemParams[0];
+					var pageId = elemParams[1];
+					toPublish[typeInfo] = pageId;
+				}
+
+				postArgs.toPublish = toPublish;
+
+				var postData = $.toJSON(postArgs);
+				$.post($this.options.commitUrl, {data: postData, ajax: true}, function (data) {
+					var response = $.parseJSON(data);
+					if (response.success) {
+						$this.message(response.message);
+						$('#FE_ViewPublished').click();
+					} else {
+						$this.message(response.message);
+					}
+				});
+			} else {
 				$this.message("Failed to save");
 			}
 		},
@@ -311,8 +360,10 @@ var SSFrontend = {};
 		registerPlugins: function () {
 			var ssSaveOptions = {
 				buttons : {
-					'sssave' : {name : __('Save this content'), type : 'ssEditorSaveButton'}
-				}
+					'sssave' : {name : __('Save this content'), type : 'ssEditorSaveButton'},
+					'sspublish' : {name: __('Publish this content'), type: 'ssEditorPublish'}
+				},
+				iconFiles : {'sspublish' : 'frontend-editing/javascript/tick.png'}
 			};
 			
 			var $this = this;
@@ -321,14 +372,21 @@ var SSFrontend = {};
 				mouseClick : function() {
 					$this.saveContents();
 				},
-				disable : function(ins,t) {		
+				disable : function(ins,t) {
 					this.updateState();	
 				}
 			});
 
+			window.ssEditorPublish = nicEditorButton.extend({
+				mouseClick: function () {
+					$this.publishContent();
+				},
+				disable: function (ins,t) {
+					this.updateState();
+				}
+			});
+
 			nicEditors.registerPlugin(nicPlugin, ssSaveOptions);
-
-
 
 //				commitLink.click(function() {
 //					var instances = $this.getEditorInstances();

@@ -28,8 +28,8 @@ function SystemColor() {
 window.tableOptions = {
    buttons : {
       'table' : {name : 'Add Table', type : 'nicEditorTableButton', tags : ['table']}
-   }
-   ,iconFiles : {'table' : 'frontend-editing/javascript/table_add.png'}
+   },
+   iconFiles : {'table' : 'frontend-editing/javascript/table_add.png'}
 };
 
 window.nicEditorTableButton = nicEditorAdvancedButton.extend({

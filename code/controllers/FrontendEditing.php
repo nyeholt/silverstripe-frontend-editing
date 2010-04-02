@@ -21,6 +21,45 @@ class FrontendEditing_Controller extends Controller
 				$obj->doPublish();
 			}
 		}
+
+		Versioned::choose_site_stage();
+		$return = new stdClass();
+		$return->success = 0;
+		$return->message = "Data not found";
+
+		$data = isset($_POST['data']) ? $_POST['data'] : null;
+		if ($data) {
+			// deserialise
+			$data = json_decode($data);
+			$topublish = $data->toPublish;
+			foreach ($topublish as $typeInfo => $nothing) {
+				list($type, $id) = split('-', $typeInfo);
+				if ($id) {
+					// set all the contents on the item
+					$obj = DataObject::get_by_id($type, $id);
+					if ($obj) {
+						$lock = $obj->getEditingLocks();
+						if (!isset($lock['LastEditor']) || $lock['LastEditor'] == Member::currentUser()->Email) {
+							if ($obj->FrontendEditAllowed()) {
+								$obj->doPublish();
+								$return->success = 1;
+								$return->message = "Successfully published page #$id";
+							} else {
+								$return->message = "You cannot edit that object.";
+							}
+						} else {
+							$return->message = sprintf(_t('FrontendEditing.PAGE_LOCKED', 'That page is currently locked by %s'), $lock['user']);
+						}
+					} else {
+						$return->message = sprintf(_t('FrontendEditing.PAGE_MISSING', 'Page %s could not be found'), $id);
+					}
+				} else {
+					$return->message = sprintf(_t('FrontendEditing.PAGE_MISSING', 'Page %s could not be found'), $id);
+				}
+			}
+		}
+
+		return Convert::raw2json($return);
 	}
 
 	/**
