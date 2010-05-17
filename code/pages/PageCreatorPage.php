@@ -21,7 +21,8 @@ OF SUCH DAMAGE.
 */
 
 /**
- * 
+ * A page type that lets user of the website create new content items from the
+ * frontend of the system
  *
  * @author Marcus Nyeholt <marcus@silverstripe.com.au>
  */
@@ -94,6 +95,13 @@ class PageCreatorPage_Controller extends Page_Controller
 		return $form;
 	}
 
+	/**
+	 *
+	 * Action called by the form to actually create a new page object. 
+	 *
+	 * @param SS_HttpRequest $request
+	 * @param Form $form
+	 */
 	public function createpage($request, Form $form)
 	{
 		// create a new object and bind the form data

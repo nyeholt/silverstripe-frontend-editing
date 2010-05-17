@@ -25,10 +25,8 @@ OF SUCH DAMAGE.
  *
  * @author Marcus Nyeholt <marcus@silverstripe.com.au>
  */
-class FrontendEditableExtension extends DataObjectDecorator implements PermissionProvider
+class FrontendEditableExtension extends DataObjectDecorator
 {
-	const CAN_FRONTEND_EDIT = "FRONTEND_EDIT";
-
 	public function extraStatics()
 	{
 		return array(
@@ -68,23 +66,6 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 	}
 
 	/**
-	 * Define some permissions used for editing wiki pages
-	 *
-	 * @return array
-	 */
-	public function providePermissions()
-	{
-		return array(
-			self::CAN_FRONTEND_EDIT => array (
-				'name' =>  _t('FrontendEditable.PERM_EDIT_FRONTEND', 'Frontend Editing'),
-				'category' => 'Content permissions',
-				'sort' => -100,
-				'help' => _t('FrontendEditable.PERM_EDIT_FRONTEND', 'Edit page content on the frontend of the site, where applicable')
-			),
-		);
-	}
-
-	/**
 	 * Are we viewing this page on the live site?
 	 *
 	 * @return boolean
@@ -111,7 +92,7 @@ class FrontendEditableExtension extends DataObjectDecorator implements Permissio
 		}
 		$isCreator = Member::currentUserID() == $this->owner->CreatorID;
 		$canEdit = $this->owner->canEdit();
-		$frontendPerm = Permission::check(self::CAN_FRONTEND_EDIT);
+		$frontendPerm = Permission::check(FrontendEditing_Controller::PERM_FRONTEND_EDIT);
 
 		if ($checkStage === true) {
 			$stage = Versioned::current_stage() == 'Stage';

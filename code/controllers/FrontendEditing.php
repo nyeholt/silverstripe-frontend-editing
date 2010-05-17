@@ -3,8 +3,37 @@
 /**
  * The controller that handles editing submissions from the frontend.
  */
-class FrontendEditing_Controller extends Controller
+class FrontendEditing_Controller extends Controller implements PermissionProvider
 {
+
+	const PERM_FRONTEND_EDIT = 'PERM_FRONTEND_EDIT';
+	const PERM_FRONTEND_PUBLISH = 'PERM_FRONTEND_PUBLISH';
+
+	/**
+	 * Implementation that provides the following permissions
+	 *
+	 * FrontendEdit
+	 * FrontendPublish
+	 * 
+	 */
+	public function providePermissions()
+	{
+		return array(
+			self::PERM_FRONTEND_EDIT => array (
+				'name' =>  _t('FrontendEditing.PERM_FRONTEND_EDIT', 'Edit Pages on the Frontend'),
+				'category' => _t('FrontendEditing.FRONTEND_EDIT_CATEGORY', 'Frontend Editing'),
+				'sort' => -100,
+				'help' => _t('FrontendEditing.PERM_EDIT_HELP', 'Allows users to edit pages on the frontend of the site. Note - you must also give them access to draft content!')
+			),
+			self::PERM_FRONTEND_PUBLISH => array (
+				'name' =>   _t('FrontendEditing.PERM_FRONTEND_PUBLISH', 'Publish pages from the frontend'),
+				'category' => _t('FrontendEditing.FRONTEND_EDIT_CATEGORY', 'Frontend Editing'),
+				'sort' => -100,
+				'help' => _t('FrontendEditing.PUBLISH_PAGES_HELP', 'Allows users to publish pages directly from the frontend.')
+			),
+		);
+	}
+
 	/**
 	 * Commit a page changed via the frontend editing
 	 *
