@@ -48,6 +48,19 @@ var SSFrontend = {};
 		},
 		clearMask: function () {
 			$('#__editor-mask').hide();
+			this.statusDiv().hide();
+		},
+
+		/**
+		 *  retrieve the status div
+		 */
+		statusDiv: function () {
+			var statusDiv = $('.__editorLoadStatus');
+			if (!statusDiv.length) {
+				statusDiv = $('<div class="__editorLoadStatus">').appendTo('body');
+			}
+			statusDiv.show();
+			return statusDiv;
 		},
 
 		/**
@@ -88,18 +101,12 @@ var SSFrontend = {};
 						toolboxCloser.hide();
 						toolboxOpener.show();
 
+						// we rely on this method to clear the mask!
 						$this.unconvertEditableRegions();
 
 						if (autoSaveTimer != null) {
 							clearInterval(autoSaveTimer);
 						}
-
-						// delay the clearing of the mask - makes sure that everything has inited and stuff...
-						// It's also somewhat deliberate so that users have a moment to register that yes, there's something
-						// completely different about the interface now
-						setTimeout(function () {
-							$this.clearMask();
-						}, 500);
 
 						return false;
 					}
@@ -109,6 +116,8 @@ var SSFrontend = {};
 				toolboxOpener.click(
 					function() {
 						$this.maskScreen();
+
+						// we rely on this to clear the mask when finished!!
 						$this.convertEditableRegions();
 
 						toolbox.show();
@@ -120,13 +129,6 @@ var SSFrontend = {};
 						autoSaveTimer = setInterval(function () {
 							// autosave!
 						}, 180000);
-						
-						// delay the clearing of the mask - makes sure that everything has inited and stuff...
-						// It's also somewhat deliberate so that users have a moment to register that yes, there's something
-						// completely different about the interface now
-						setTimeout(function () {
-							$this.clearMask();
-						}, 500);
 					}
 				);
 
@@ -164,14 +166,16 @@ var SSFrontend = {};
 			
 			var elementsToConvert = $('.'+$this.wysiwygElements);
 
-			var statusDiv = $('<div class="__editorLoadStatus">').appendTo('body');
-			statusDiv.html('<p>Loading 0%</p>');
+			$this.statusDiv().html('<p>Loading 0%</p>');
+
+			var numToConvert = elementsToConvert.length;
+			var numberConverted = 0;
 
 	       	elementsToConvert.each(function (index) {
 				$this.pageEditor.addInstance(this);
 				var elemParams = $(this).attr("id").split("|");
 				var typeInfo = elemParams[0] + '-' + elemParams[2];
-				$this.updateFieldContents(this, typeInfo, 'raw');
+
 				$(this).addClass('__editable');
 
 				// it's safe to bind now, because updateFieldContents processes syncronously
@@ -181,9 +185,26 @@ var SSFrontend = {};
 				$(this).keydown(function () {
 					$this.contentChanged = true;
 				})
-				statusDiv.html('<p>Loading ' + (((index + 1) / elementsToConvert.length) * 100).toFixed(2) + '%</p>');
+
+				$this.updateFieldContents(this, typeInfo, 'raw',
+					function () {
+						numberConverted++;
+						$this.statusDiv().html('<p>Loading ' + (((numberConverted) / numToConvert) * 100).toFixed(2) + '%</p>');
+						if (numberConverted >= numToConvert) {
+							// delay the clearing of the mask - makes sure that everything has inited and stuff...
+							// It's also somewhat deliberate so that users have a moment to register that yes, there's something
+							// completely different about the interface now
+							setTimeout(function () {
+								$this.clearMask();
+							}, 500);
+
+						}
+					},
+					function () {
+						$this.unconvertEditableRegions();
+					}
+				);
 	       	});
-			statusDiv.remove();
 		},
 
 		/**
@@ -202,17 +223,35 @@ var SSFrontend = {};
 			nicEditors.editors = [];
 
 			var elementsToConvert = $('.'+$this.wysiwygElements);
-			var statusDiv = $('<div class="__editorLoadStatus">').appendTo('body');
-			statusDiv.html('<p>Loading 0%</p>');
+			$this.statusDiv().html('<p>Loading 0%</p>');
 
+			var numToConvert = elementsToConvert.length;
+			var numberConverted = 0;
+			
 			elementsToConvert.each(function (index) {
 				var elemParams = $(this).attr("id").split("|");
 				var typeInfo = elemParams[0] + '-' + elemParams[2];
-				$this.updateFieldContents(this, typeInfo, 'escaped');
 				$(this).removeClass('__editable');
-				statusDiv.html('<p>Loading ' + (((index + 1) / elementsToConvert.length) * 100).toFixed(2) + '%</p>');
+
+				$this.updateFieldContents(this, typeInfo, 'escaped',
+					function () {
+						numberConverted++;
+						$this.statusDiv().html('<p>Loading ' + (((numberConverted) / numToConvert) * 100).toFixed(2) + '%</p>');
+						if (numberConverted >= numToConvert) {
+							// delay the clearing of the mask - makes sure that everything has inited and stuff...
+							// It's also somewhat deliberate so that users have a moment to register that yes, there's something
+							// completely different about the interface now
+							setTimeout(function () {
+								$this.clearMask();
+							}, 500);
+
+						}
+					},
+					function () {
+						$this.unconvertEditableRegions();
+					}
+				);
 	       	});
-			statusDiv.remove();
 		},
 
 		/**
@@ -222,11 +261,11 @@ var SSFrontend = {};
 		 * We do this synchronously so that users never edit content before it's fully loaded and ready
 		 * to be changed
 		 */
-		updateFieldContents: function (element, typeInfo, format) {
+		updateFieldContents: function (element, typeInfo, format, successfulLoad, loadError) {
 			var $this = this;
 			var request = $this.options.contentUrl + '/' + typeInfo + '/' + format;
 			$.ajax({
-				async: false,
+				async: true,
 				url: request,
 				success: function (data) {
 					var response = $.parseJSON(data);
@@ -239,6 +278,10 @@ var SSFrontend = {};
 							$(element).addClass('__editable_empty');
 						}
 					}
+					successfulLoad.apply($this);
+				},
+				error: function () {
+					loadError.apply($this);
 				}
 			});
 		},
