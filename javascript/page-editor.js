@@ -429,27 +429,16 @@ var SSFrontend = {};
 				}
 			});
 
-			nicEditors.registerPlugin(nicPlugin, ssSaveOptions);
+			$(document).keydown(function (e) {
+				// ctrl + s
+				if (e.altKey && e.which == 83) {
+					$this.saveContents();
+					e.preventDefault();
+					return false;
+				}
+			})
 
-//				commitLink.click(function() {
-//					var instances = $this.getEditorInstances();
-//					// commit all changed items (but only once)
-//					var committed = new Array();
-//					for (var i = 0, c = instances.length; i < c; i++) {
-//						elemParams = $(instances[i].elm).attr("id").split("|");
-//						var pagePath = elemParams[0];
-//						// only want to commit a page ONCE
-//						if ($.inArray(pagePath, committed) < 0) {
-//							committed.push(pagePath);
-//							$.post($this.options.commitUrl, {url: pagePath}, function () {
-//								$this.message("Committed all changes");
-//								// now reload, because we no longer have the lock on this page
-//								var join = location.href.indexOf("?") > 0 ? "&" : "?";
-//								location.href = location.href + join + "stage=Live";
-//							});
-//						}
-//					}
-//				});
+			nicEditors.registerPlugin(nicPlugin, ssSaveOptions);
 		}
 	};
 })(jQuery);
