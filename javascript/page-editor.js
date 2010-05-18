@@ -78,12 +78,12 @@ var SSFrontend = {};
 				toolbox.append("<img id='__ajax-load' src='frontend-editing/javascript/ajax-loader.gif' /><div id='__message-box'></div>");
 				toolbox.append("<div id='__toolboxcontent'><div id='__editor-panel' ></div></div>");
 
-				var toolboxCloser = $('#FE_SwitchOff').hide();
+				var toolboxCloser = $('#FE_SwitchOff');
 				if (toolboxCloser.length == 0) {
 					toolboxCloser = $("<div id='__toolbox-control'></div>").appendTo(toolbox);
 				}
 
-				var toolboxOpener = $('#FE_SwitchOn');
+				var toolboxOpener = $('#FE_SwitchOn').show();
 				if (toolboxOpener.length == 0) {
 					toolboxOpener = $("<div id='__toolbox-opener'>Show Editor</div>").prependTo($('body'));
 				}
