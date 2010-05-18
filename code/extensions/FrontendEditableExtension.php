@@ -120,7 +120,7 @@ class FrontendEditableExtension extends DataObjectDecorator
 	 */
 	public function EditableField($fieldName, $tagType='div')
 	{
-		Requirements::javascript('frontend-editing/javascript/jquery-1.4.1.min.js');
+		Requirements::javascript('sapphire/thirdparty/jquery/jquery-packed.js');
 		Requirements::javascript('frontend-editing/javascript/edit-controls.js');
 		Requirements::css('frontend-editing/css/edit-controls.css');
 
