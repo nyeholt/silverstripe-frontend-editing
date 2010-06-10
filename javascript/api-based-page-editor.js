@@ -167,7 +167,7 @@ var SSFrontend = {};
 					pageArgs["clazz"] = pageClass;
 					postArgs[pageId] = pageArgs;
 				}
-				
+
 				for (var pageId in postArgs) {
 					// figure out the URL to post to based on the args /api/v1/(ClassName)/(ID)/(MethodName)
 					var apiUrl = $this.options.baseUrl + "api/v1/"+postArgs[pageId]["clazz"]+"/"+pageId+"/saveFromFrontend";
@@ -180,7 +180,7 @@ var SSFrontend = {};
 				$this.message("Failed to save");
 			}
 		},
-		
+
 		message: function (text) {
 			if ($.jGrowl) {
 				$.jGrowl(text);

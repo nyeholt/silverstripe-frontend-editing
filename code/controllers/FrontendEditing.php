@@ -69,12 +69,11 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 					if ($obj) {
 						$lock = $obj->getEditingLocks();
 						if (!isset($lock['LastEditor']) || $lock['LastEditor'] == Member::currentUser()->Email) {
-							if ($obj->FrontendEditAllowed()) {
-								$obj->doPublish();
+							if ($obj->FrontendEditAllowed() && $obj->doPublish()) {
 								$return->success = 1;
-								$return->message = "Successfully published page #$id";
+								$return->message = _t('FrontendEditing.PUBLISH_SUCCESSFUL', "Successfully published page");
 							} else {
-								$return->message = "You cannot edit that object.";
+								$return->message = _t('FrontendEditing.PUBLISH_NOT_ALLOWED', "You cannot publish that content.");
 							}
 						} else {
 							$return->message = sprintf(_t('FrontendEditing.PAGE_LOCKED', 'That page is currently locked by %s'), $lock['user']);

@@ -39,7 +39,7 @@
 				'<div><label>URL</label><input type="text" name="href" value="http://" /></div>' +
 				'<div><label>Alternate Text</label><input type="text" name="altText" value="" /></div>' +
 				'<div><label>The tooltip for this image</label><input type="text" name="title" /></div>' +
-				'<div style="margin-top: 20px;"><input type="submit" value="Save" /><input type="button" value="Cancel" class="cancelButton" /></div>'
+				'<div style="margin-top: 20px;"><input type="submit" value="Insert" /><input type="button" value="Cancel" class="cancelButton" /></div>'
 			);
 
 			controlsDiv.append(form);
@@ -81,7 +81,7 @@
 				// see if we've got a sitetree_link type URL or otherwise
 				var curLink = this.ln.getAttribute('src');
 				if (curLink.indexOf('assets/') === 0) {
-					$('[name=internalhref]').val(this.ln.getAttribute('src'));
+					controlsDiv.find('[name=href]').val(curLink);
 					// now search so that we expand to the current selection
 					setTimeout(function () {
 						// need a timeout to ensure the page has enough time to initialise before we try anything
@@ -89,10 +89,10 @@
 						ssauImageTree.search(curLink);
 					}, 500);
 				} else {
-					$('[name=href]').val(this.ln.getAttribute('href'));
+					controlsDiv.find('[name=href]').val(this.ln.getAttribute('href'));
 				}
-
-				$('[name=title]').val(this.ln.getAttribute('title'));
+				var title = this.ln.getAttribute('title');
+				controlsDiv.find('[name=title]').val(this.ln.getAttribute('title'));
 			} else if (this.ne.selectedInstance.selElm()) {
 				// see if there's a text selection at all
 			}
@@ -114,10 +114,14 @@
 		submit : function(e) {
 			var formControls = $('#imageSelectionControls');
 			var url = $('[name=href]').val();
+			// store before we exit...
+			var elemTitle = $('[name=title]').val();
+
 			if(url == "http://" || url == "") {
 				alert("You must enter a URL to Create a Link");
 				return false;
 			}
+			
 			this.removePane();
 
 			if(!this.ln) {
@@ -126,9 +130,10 @@
 				this.ln = this.findElm('IMG','src',tmp);
 			}
 			if(this.ln) {
+				
 				this.ln.setAttributes({
 					src : url,
-					title : $('[name=title]').val()
+					title : elemTitle
 				});
 			}
 			e.preventDefault();
