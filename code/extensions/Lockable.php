@@ -139,7 +139,7 @@ JSCRIPT;
 			'LockExpiry > ' => date('Y-m-d H:i:s'),
 		);
 
-		$filter = db_quote($filter);
+		$filter = singleton('FEUtils')->dbQuote($filter);
 
 		$user = Member::currentUser();
 		$currentLock = DataObject::get_one('SiteTree', $filter);

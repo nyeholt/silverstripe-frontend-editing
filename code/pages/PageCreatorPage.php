@@ -28,6 +28,8 @@ OF SUCH DAMAGE.
  */
 class PageCreatorPage extends Page
 {
+	public static $additional_types = array();
+	
     public static $db = array(
 		'CreateType' => 'Varchar(32)',
 	);
@@ -41,14 +43,17 @@ class PageCreatorPage extends Page
 		'createpage',
 	);
 
-	public function getCMSFields()
-	{
+	public function getCMSFields() {
 		$fields = parent::getCMSFields();
 
 		$types = ClassInfo::implementorsOf('FrontendCreatable');
+		
 		if (!$types) {
-			return $fields;
+			$types = array();
 		}
+
+		$types = array_merge($types, self::$additional_types);
+
 		$types = array_combine($types, $types);
 
 		$fields->addFieldToTab('Root.Content.Main', new DropdownField('CreateType', _t('FrontendEditing.CREATE_TYPE', 'Create pages of which type?'), $types));
@@ -80,6 +85,8 @@ class PageCreatorPage_Controller extends Page_Controller
 				if ($myFields) {
 					$fields = $myFields;
 				}
+			} else if ($obj instanceof Member) {
+				$fields = $obj->getMemberFormFields();
 			}
 		} else {
 			$fields = new FieldSet(
@@ -107,7 +114,7 @@ class PageCreatorPage_Controller extends Page_Controller
 		// create a new object and bind the form data
 		$pid = $this->CreateLocation()->ID;
 		if (!$pid) {
-			throw new Exception('Incorrectly configured - no create location set');
+			$pid = 0;
 		}
 		$type = $this->CreateType;
 		$obj = new $type;

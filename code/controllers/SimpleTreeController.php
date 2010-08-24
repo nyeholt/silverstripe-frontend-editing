@@ -132,7 +132,7 @@ class SimpleTreeController extends Controller
 			
 		} else if (preg_match ('/^assets\//', $query)) {
 			// search for the file based on its filepath
-			$item = DataObject::get_one($rootObjectType, db_quote(array ('Filename =' => $query)));
+			$item = DataObject::get_one($rootObjectType, singleton('FEUtils')->dbQuote(array ('Filename =' => $query)));
 		}
 
 		if ($item && $item->ID) {
