@@ -129,4 +129,3 @@ class PageCreatorPage_Controller extends Page_Controller
 		Director::redirect($obj->Link().'?stage=Stage');
 	}
 }
-?>

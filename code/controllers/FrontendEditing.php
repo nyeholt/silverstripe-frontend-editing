@@ -170,5 +170,3 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 		return Convert::raw2json($return);
 	}
 }
-
-?>

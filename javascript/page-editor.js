@@ -1,35 +1,39 @@
 
-var SSFrontend = {};
+var SSFrontendEditor = {};
 
 (function($) {
-	
-	var ssEditor = null;
-	
-	SSFrontend.FrontendEditor = function (options) {
-		if (ssEditor != null) {
+	SSFrontendEditor.FrontendEditor = function (options) {
+		if (SSFrontendEditor.Instance != null) {
 			throw "Can only create a single instance of the frontend editor.";
 		}
 
-		ssEditor = this;
+		SSFrontendEditor.Instance = this;
 		this.options = options;
 
 		this.wysiwygElements = options.editorClass || "__wysiwyg-editable";
 		this.pageEditor = null;
 
 		this.nicInstances = [];
-		this.init();
-
+		this.plugins = [];
+		
+		// we wait 500ms until other bits of code have run in jquery's ready(), so that 
+		// they can register plugins etc if they wish
+		setTimeout(function () {
+			SSFrontendEditor.Instance.init();
+		}, 500);
 	};
 
-	SSFrontend.FrontendEditor.prototype = {
+	SSFrontendEditor.FrontendEditor.prototype = {
 		init: function () {
-			var $this = this;
-			var autoSaveTimer = null;
-
 			this.contentChanged = false;
-			this.registerPlugins();
 			this.initialiseToolbars();
+		},
 
+		/**
+		 * Register a plugin to be loaded into the editor
+		 */
+		registerPlugin: function (plugin) {
+			this.plugins.push(plugin);
 		},
 
 		maskScreen: function () {
@@ -46,6 +50,7 @@ var SSFrontend = {};
 			dialogMask.css({'width':maskWidth,'height':maskHeight, opacity: '0.8'});
 			dialogMask.show();
 		},
+		
 		clearMask: function () {
 			$('#__editor-mask').hide();
 			this.statusDiv().hide();
@@ -150,16 +155,24 @@ var SSFrontend = {};
 		convertEditableRegions: function () {
 			this.contentChanged = false;
 
-			var buttons = ['sssave','sspublish','bold','italic','underline','left','center',
-	       		'right','justify','ol','ul','applyclass','fontFormat', 'removeformat',
+			var buttons = ['bold','italic','underline','left','center',
+	       		'right','justify','ol','ul','fontFormat', 'removeformat',
 	       		'indent','outdent','insertlink','unlink','insertimage', 'forecolor',
 	       		'bgcolor','xhtml', 'table'];
 	       	var icons = {"xhtml":1,"bgcolor":2,"forecolor":3,"bold":4,"center":5,
 	       		"hr":6,"indent":7,"italic":8,"justify":9,"left":10,"ol":11,"outdent":12,
-	       		"removeformat":13,"right":14,"sssave":25,"strikethrough":16,"subscript":17,
+	       		"removeformat":13,"right":14,"strikethrough":16,"subscript":17,
 	       		"superscript":18,"ul":19,"underline":20,"image":21,"insertimage":21,"link":22,"unlink":23,
 	       		"close":24,"arrow":26,"insertlink": 22}
-			
+
+			for (var i = 0, c = this.plugins.length; i < c; i++) {
+				// first call its load method, passing the global nicEditors object to have plugins loaded into it
+				this.plugins[i].load(nicEditors);
+
+				// then update the buttons list
+				this.plugins[i].addButtonsTo(buttons);
+			}
+
 	       	var $this = this;
 	       	this.pageEditor = new nicEditor({buttonList: buttons, iconList: icons, iconsPath: 'frontend-editing/javascript/nicEditorIcons.gif'});
 	       	this.pageEditor.setPanel('__editor-panel');
@@ -218,6 +231,7 @@ var SSFrontend = {};
 			for (var i = 0; i < nicInstances.length; i++) {
 				nicInstances[i].remove();
 			}
+
 			$('#__editor-panel').html("");
 			// reset the global cache of editors
 			nicEditors.editors = [];
@@ -302,14 +316,13 @@ var SSFrontend = {};
 		 */
 		saveContents: function (content, id, selectedInstances) {
 			var $this = this;
-			
 			var instances = this.getEditorInstances();
 			// get all the editors and package them up for saving
 			var postArgs = {};
 
 			if (instances.length > 0) {
 				for (var i = 0, c = instances.length; i < c; i++) {
-					elemParams = $(instances[i].elm).attr("id").split("|");
+					var elemParams = $(instances[i].elm).attr("id").split("|");
 					var pagePath = elemParams[0];
 					var pageId = elemParams[1];
 					var pageElement = elemParams[2];
@@ -362,7 +375,7 @@ var SSFrontend = {};
 			var toPublish = {};
 			if (instances.length > 0) {
 				for (var i = 0, c = instances.length; i < c; i++) {
-					elemParams = $(instances[i].elm).attr("id").split("|");
+					var elemParams = $(instances[i].elm).attr("id").split("|");
 					var typeInfo = elemParams[0];
 					var pageId = elemParams[1];
 					toPublish[typeInfo] = pageId;
@@ -394,35 +407,38 @@ var SSFrontend = {};
 			} else {
 				alert(text);
 			}
+		}
+	};
+
+	SSFrontendEditor.Plugin = function () {
+	}
+
+	SSFrontendEditor.Plugin.prototype = {
+		addButtonsTo: function (buttonList) {},
+		load: function (editors) {}
+	}
+
+	new SSFrontendEditor.FrontendEditor({saveUrl: "frontendedit/frontendSave", commitUrl: "frontendedit/frontendCommit", contentUrl: "frontendedit/getcontent"});
+
+	SSFrontendEditor.Instance.registerPlugin({
+		addButtonsTo: function (buttonList) {
+			buttonList.unshift('sspublish');
+			buttonList.unshift('sssave');
 		},
 		
-		/**
-		 * Register plugins for the page. Later down the track we'll 
-		 * have a hook so users can define their own...
-		 */
-		registerPlugins: function () {
-			var ssSaveOptions = {
-				buttons : {
-					'sssave' : {name : __('Save this content'), type : 'ssEditorSaveButton'},
-					'sspublish' : {name: __('Publish this content'), type: 'ssEditorPublish'}
-				},
-				iconFiles : {'sspublish' : 'frontend-editing/javascript/tick.png'}
-			};
-			
-			var $this = this;
-			
-			window.ssEditorSaveButton = nicEditorButton.extend({
+		load: function (editors) {
+			SSFrontendEditor.ssEditorSaveButton = nicEditorButton.extend({
 				mouseClick : function() {
-					$this.saveContents();
+					SSFrontendEditor.Instance.saveContents();
 				},
 				disable : function(ins,t) {
-					this.updateState();	
+					this.updateState();
 				}
 			});
 
-			window.ssEditorPublish = nicEditorButton.extend({
+			SSFrontendEditor.ssEditorPublish = nicEditorButton.extend({
 				mouseClick: function () {
-					$this.publishContent();
+					SSFrontendEditor.Instance.publishContent();
 				},
 				disable: function (ins,t) {
 					this.updateState();
@@ -430,15 +446,27 @@ var SSFrontend = {};
 			});
 
 			$(document).keydown(function (e) {
-				// ctrl + s
+				// alt + s
 				if (e.altKey && e.which == 83) {
-					$this.saveContents();
+					SSFrontendEditor.Instance.saveContents();
 					e.preventDefault();
 					return false;
 				}
 			})
 
-			nicEditors.registerPlugin(nicPlugin, ssSaveOptions);
+			var ssSaveOptions = {
+				buttons : {
+					'sssave' : {name : __('Save this content'), type : 'SSFrontendEditor.ssEditorSaveButton'},
+					'sspublish' : {name: __('Publish this content'), type: 'SSFrontendEditor.ssEditorPublish'}
+				},
+				iconFiles : {
+					'sspublish' : 'frontend-editing/javascript/tick.png',
+					'sssave' : 'frontend-editing/javascript/save.png'
+				}
+			};
+
+			editors.registerPlugin(nicPlugin, ssSaveOptions);
 		}
-	};
+	});
+
 })(jQuery);

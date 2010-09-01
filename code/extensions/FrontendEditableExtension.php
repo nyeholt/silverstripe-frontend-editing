@@ -47,7 +47,7 @@ class FrontendEditableExtension extends DataObjectDecorator
 	}
 
 	/**
-	 * Let the user be modified on the frontend
+	 * Each page that is editable should have an "Owner" 
 	 *
 	 * @param FieldSet $fields
 	 */
@@ -141,27 +141,17 @@ class FrontendEditableExtension extends DataObjectDecorator
 				Requirements::javascript('frontend-editing/javascript/jstree-0.9.9a2/jquery.tree.js');
 				Requirements::javascript('frontend-editing/javascript/jquery.json.js');
 				Requirements::javascript('frontend-editing/javascript/nicEditDev.js');
-				Requirements::javascript('frontend-editing/javascript/nicedit-table.js');
-				Requirements::javascript('frontend-editing/javascript/nicedit-tree.js');
-				Requirements::javascript('frontend-editing/javascript/nicedit-url-selector.js');
-				Requirements::javascript('frontend-editing/javascript/nicedit-image-selector.js');
-				Requirements::javascript('frontend-editing/javascript/nicedit-class-selector.js');
 				
 				Requirements::javascript('frontend-editing/javascript/page-editor.js');
 
-				$base = Director::baseURL();
-				$urlPrefix = Director::baseURL() . FRONTEND_EDIT_PREFIX;
-				$frontendEditor = <<<HTML
-				window.SILVERSTRIPE_BASE = '$base';
-				jQuery().ready(function() {
-					var frontendEditor = new SSFrontend.FrontendEditor({saveUrl:"$urlPrefix/frontendSave", commitUrl: "$urlPrefix/frontendCommit", contentUrl: "$urlPrefix/getcontent"});
-				});
-HTML;
+				Requirements::javascript('frontend-editing/javascript/nicedit-table.js');
+				Requirements::javascript('frontend-editing/javascript/nicedit-image-selector.js');
+				Requirements::javascript('frontend-editing/javascript/nicedit-class-selector.js');
+				Requirements::javascript('frontend-editing/javascript/nicedit-url-selector.js');
+
 				$lockUpdate = $this->owner->getLockUpdater();
-				Requirements::customScript($frontendEditor, 'frontend_editor_script');
 				Requirements::customScript($lockUpdate, 'lock_updater_for_'.$this->owner->ID);
 
-				
 				$ID = $this->owner->ID;
 				$typeInfo = $this->owner->ClassName.'-'.$ID;
 				// now add the wrapped field

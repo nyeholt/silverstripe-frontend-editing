@@ -43,7 +43,7 @@ class LockableController extends Controller
 		$pageId = $this->urlParams['ID'];
 		if (!$pageId) {
 			$response->status = 0;
-			$response->message = _t('Lockable.ID_NOT_FOUND', 'The page ID was not specified');
+			$response->message = _t('FrontendLockable.ID_NOT_FOUND', 'The page ID was not specified');
 		} else {
 			$page = DataObject::get_by_id('Page', $pageId);
 			if ($page->ID && $page->canEdit()) {
@@ -61,11 +61,10 @@ class LockableController extends Controller
 				}
 			} else {
 				$response->status = 0;
-				$response->message = _t('Lockable.PAGE_NOT_FOUND', 'The page with ID '.$pageId.' was not found');
+				$response->message = _t('FrontendLockable.PAGE_NOT_FOUND', 'The page with ID '.$pageId.' was not found');
 			}
 		}
 		
 		return Convert::raw2json($response);
 	}
 }
-?>

@@ -25,8 +25,7 @@ OF SUCH DAMAGE.
  *
  * @author Marcus Nyeholt <marcus@silverstripe.com.au>
  */
-class Lockable extends DataObjectDecorator
-{
+class FrontendLockable extends DataObjectDecorator {
 	/**
 	 * lock pages for 1 minute at a time by default
 	 * This value is in seconds
