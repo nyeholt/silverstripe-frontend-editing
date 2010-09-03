@@ -3,11 +3,16 @@
 	// global reference for the tree
 	var ssauImageTree = null;
 
+	var TREE_URL = '__tree/childnodes/File/Image';
+
 	SSFrontendEditor.Instance.registerPlugin({
 		addButtonsTo: function (buttonList) {
 
 		},
 		load: function (editors) {
+
+			var _this = this;
+
 			var ssauImageOptions = {
 				buttons : {
 					'insertimage' : {name : 'Insert Image', type : 'SSFrontendEditor.ssauImageButton', tags : ['IMG']}
@@ -38,6 +43,15 @@
 						'margin-right': '300px'
 					}).appendTo(this.pane.pane);
 
+					// need to delete any that are left around - due to the way nicedit does its stuff
+					$('.imageListDiv').remove();
+
+					var imageListDiv = $('<div class="imageListDiv"></div>').css({
+						clear: 'both',
+						width: '510px',
+						overflow: 'auto'
+					}).appendTo(this.pane.pane);
+
 					var form = new bkElement('form').addEvent('submit',this.submit.closureListener(this));
 					form.setContent(
 						'<div><label>URL</label><input type="text" name="href" value="http://" /></div>' +
@@ -51,7 +65,7 @@
 					$('.cancelButton').click(function () {
 						$this.removePane();
 					})
-
+					
 					this.pane.pane.setStyle({width: '520px'});
 
 					var treeContainer = $('<div id="imageSelectorTree"></div>').appendTo(treeDiv);
@@ -61,7 +75,7 @@
 							async: true,
 							opts : {
 								async: true,
-								url : '__tree/childnodes/File/Image'
+								url : TREE_URL
 							}
 						},
 						ui: {
@@ -70,9 +84,12 @@
 						callback: {
 							onselect: function (node, tree) {
 								var bits = node.id.split('-');
-								if (bits[1]) {
+								if (bits[1] && bits[0] != 'Folder') {
 									$('[name=href]').val(node.getAttribute('link'));
 									$('[name=title]').val(node.getAttribute('title'));
+								} else {
+									// lets load all the children of the folder in a list
+									_this.loadPreviewImages($('.imageListDiv'), node.id)
 								}
 							}
 						}
@@ -145,6 +162,38 @@
 				}
 			});
 			editors.registerPlugin(nicPlugin,ssauImageOptions);
+		},
+		loadPreviewImages: function (targetDiv, folderId) {
+			targetDiv.empty();
+			var list = $('<ul>').appendTo(targetDiv).css({
+				height: '140px',
+				padding: '8px',
+				cursor: 'pointer',
+				'list-style-type': 'none'
+			});
+
+			$.get(TREE_URL, {id: folderId}, function (data) {
+				var objects = $.parseJSON(data);
+				if (objects && objects.length) {
+					list.css('width', "" + (objects.length * 138 + 16) + 'px');
+					for (var i = 0; i < objects.length; i++) {
+						var obj = objects[i];
+						if (obj.thumbs) {
+							var li = $('<li>').appendTo(list);
+							li.html('<img src="'+obj.thumbs.x128+'" title="'+obj.attributes.title+'" alt="'+obj.attributes.link+'" />');
+							li.css({
+								'float': 'left',
+								'margin': '5px'
+							});
+
+							li.click(function () {
+								$('[name=href]').val($(this).find('img').attr('alt'));
+								$('[name=title]').val($(this).find('img').attr('title'));
+							})
+						}
+					}
+				}
+			});
 		}
 	});
 	

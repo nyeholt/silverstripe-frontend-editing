@@ -25,16 +25,14 @@ OF SUCH DAMAGE.
  *
  * @author Marcus Nyeholt <marcus@silverstripe.com.au>
  */
-class SimpleTreeController extends Controller
-{
+class SimpleTreeController extends Controller {
 	/**
 	 * Request nodes from the server
 	 *
 	 * @param SS_HTTPRequest $request
 	 * @return JSONString
 	 */
-    public function childnodes($request)
-	{
+    public function childnodes($request) {
 		$data = array();
 
 		$rootObjectType = 'SiteTree';
@@ -75,6 +73,8 @@ class SimpleTreeController extends Controller
 					if ($child->ID < 0) {
 						continue;
 					}
+
+
 					$haskids = $child->numChildren() > 0;
 					$nodeData = array(
 						'title' => isset($child->MenuTitle) ? $child->MenuTitle : $child->Title,
@@ -82,19 +82,43 @@ class SimpleTreeController extends Controller
 					if ($selectable && !in_array($child->ClassName, $selectable)) {
 						$nodeData['clickable'] = false;
 					}
-					if (!$haskids) {
+
+					$thumbs = null;
+					if ($child->ClassName == 'Image') {
+						$thumbs = $this->generateThumbnails($child);
+						$nodeData['icon'] = $thumbs['x16'];
+					} else if (!$haskids) {
 						$nodeData['icon'] = 'frontend-editing/images/page.png';
 					}
-					$data[] = array(
-						'attributes' => array('id' => $rootObjectType. '-' . $child->ID, 'title' => Convert::raw2att($nodeData['title']), 'link' => $child->RelativeLink()),
+
+					$nodeEntry = array(
+						'attributes' => array('id' => $child->ClassName. '-' . $child->ID, 'title' => Convert::raw2att($nodeData['title']), 'link' => $child->RelativeLink()),
 						'data' => $nodeData,
 						'state' => $haskids ? 'closed' : 'open'
 					);
+
+					if ($thumbs) {
+						$nodeEntry['thumbs'] = $thumbs;
+					}
+
+					$data[] = $nodeEntry;
 				}
 			}
 		}
-		
+
 		return Convert::raw2json($data);
+	}
+
+	/**
+	 * Called to generate thumbnails before sending the image data back
+	 *
+	 * @param Image $image
+	 */
+	protected function generateThumbnails(Image $image) {
+		$thumbs = array();
+		$thumbs['x16'] = $image->SetRatioSize(16, 16)->Link();
+		$thumbs['x128'] = $image->SetRatioSize(128, 128)->Link();
+		return $thumbs;
 	}
 
 	/**
