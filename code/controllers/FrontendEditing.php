@@ -39,10 +39,13 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 	 *
 	 * @return
 	 */
-	public function frontendCommit()
-	{
+	public function frontendCommit() {
+		if (!$this->validateId(isset($_POST['SecurityID']) ? $_POST['SecurityID'] : null)) {
+			return singleton('FEUtils')->ajaxResponse('Invalid security token', false);
+		}
 		Versioned::choose_site_stage();
 		$urlName = isset($_POST['url']) ? $_POST['url'] : null;
+
 		if ($urlName) {
 			$obj = $this->Page($urlName);
 			if ($obj->canPublish()) {
@@ -96,8 +99,11 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 	 *
 	 * @return unknown_type
 	 */
-	public function frontendSave()
-	{
+	public function frontendSave() {
+		if (!$this->validateId(isset($_POST['SecurityID']) ? $_POST['SecurityID'] : null)) {
+			return singleton('FEUtils')->ajaxResponse('Invalid security token', false);
+		}
+
 		Versioned::choose_site_stage();
 		$return = new stdClass();
 		$return->success = 0;
@@ -139,6 +145,13 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 		}
 
 		return Convert::raw2json($return);
+	}
+
+	protected function validateId($id) {
+		if (!$id || $id != Session::get('SecurityID')) {
+			return false;
+		}
+		return true;
 	}
 
 	/**

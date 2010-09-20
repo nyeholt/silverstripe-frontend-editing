@@ -27,8 +27,13 @@ var SSFrontendEditor = {};
 
 	SSFrontendEditor.FrontendEditor.prototype = {
 		init: function () {
+			var _this = this;
 			this.contentChanged = false;
 			this.initialiseToolbars();
+
+			$('body').ajaxError(function (data) {
+				_this.message("Request failed: "+data);
+			})
 		},
 
 		/**
@@ -345,13 +350,13 @@ var SSFrontendEditor = {};
 				}
 
 				var postData = $.toJSON(postArgs);
-				$.post($this.options.saveUrl, {data: postData, ajax: true}, function (data) {
+				$.post($this.options.saveUrl, {data: postData, ajax: true, SecurityID: SS_SECURITY_ID}, function (data) {
 					var response = $.parseJSON(data);
 					if (response.success) {
 						$this.message(response.message);
 						$this.contentChanged = false;
 					} else {
-						$this.message(response.message);
+						alert('ERROR: ' + response.message);
 					}
 				});
 			} else { 
