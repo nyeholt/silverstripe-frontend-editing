@@ -18,8 +18,6 @@ var SSFrontendEditor = {};
 		
 		// we wait 500ms until other bits of code have run in jquery's ready(), so that 
 		// they can register plugins etc if they wish
-		this.maskScreen();
-		this.statusDiv().html("Initialising editor...");
 		setTimeout(function () {
 			SSFrontendEditor.Instance.init();
 		}, 500);
@@ -405,7 +403,7 @@ var SSFrontendEditor = {};
 				postArgs.toPublish = toPublish;
 
 				var postData = $.toJSON(postArgs);
-				$.post($this.options.commitUrl, {data: postData, ajax: true}, function (data) {
+				$.post($this.options.commitUrl, {data: postData, ajax: true, SecurityID: SS_SECURITY_ID}, function (data) {
 					var response = $.parseJSON(data);
 					if (response.success) {
 						$this.message(response.message);
