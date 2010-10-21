@@ -28,6 +28,7 @@ var SSFrontendEditor = {};
 	SSFrontendEditor.FrontendEditor.prototype = {
 		init: function () {
 			var _this = this;
+			this.pluginsLoaded = false;
 			this.contentChanged = false;
 			this.initialiseToolbars();
 
@@ -172,13 +173,16 @@ var SSFrontendEditor = {};
 	       		"superscript":18,"ul":19,"underline":20,"image":21,"insertimage":21,"link":22,"unlink":23,
 	       		"close":24,"arrow":26,"insertlink": 22}
 
+			
 			for (var i = 0, c = this.plugins.length; i < c; i++) {
 				// first call its load method, passing the global nicEditors object to have plugins loaded into it
-				this.plugins[i].load(nicEditors);
-
+				if (!this.pluginsLoaded) {
+					this.plugins[i].load(nicEditors);
+				}
 				// then update the buttons list
 				this.plugins[i].addButtonsTo(buttons);
 			}
+			this.pluginsLoaded = true;
 
 	       	var $this = this;
 	       	this.pageEditor = new nicEditor({buttonList: buttons, iconList: icons, iconsPath: 'frontend-editing/javascript/nicEditorIcons.gif'});
@@ -190,6 +194,16 @@ var SSFrontendEditor = {};
 
 			var numToConvert = elementsToConvert.length;
 			var numberConverted = 0;
+
+			$(document).keydown(function (e) {
+				// alt + s
+				if (e.altKey && e.which == 83) {
+					SSFrontendEditor.Instance.saveContents();
+					e.preventDefault();
+					return false;
+				}
+			})
+
 
 	       	elementsToConvert.each(function (index) {
 				$this.pageEditor.addInstance(this);
@@ -452,15 +466,7 @@ var SSFrontendEditor = {};
 				}
 			});
 
-			$(document).keydown(function (e) {
-				// alt + s
-				if (e.altKey && e.which == 83) {
-					SSFrontendEditor.Instance.saveContents();
-					e.preventDefault();
-					return false;
-				}
-			})
-
+			
 			var ssSaveOptions = {
 				buttons : {
 					'sssave' : {name : __('Save this content'), type : 'SSFrontendEditor.ssEditorSaveButton'},
