@@ -33,6 +33,18 @@ example, instead of `$Content`, you use
 $EditableField(Content)
 ````
 
+As well as single fields of the current page, you can use it on 
+other objects contained in a control block (so long as those
+objects have the EditableExtension)
+
+````
+<ul>
+<% control Items %>
+	<li>$EditableControl(Title)</li>
+<% end_control %>
+</ul>
+````
+
 Also in your template, add the following at the top. It includes some
 controls for initiating the editor (if you want them). You can provide
 your own mechanism for launching the editor, but this is simpler :)
