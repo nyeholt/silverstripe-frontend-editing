@@ -21,19 +21,15 @@ switching between edit and standard views, and that's all there is to it.
 Add the following to your _config.php for the pages you want editable
 
 ````
-
 DataObject::add_extension('Page', 'FrontendEditableExtension');
 DataObject::add_extension('Page', 'FrontendLockable');
-
 ````
 
 In your templates, add the following in place of raw output fields - for
 example, instead of `$Content`, you use
 
 ````
-
 $EditableField(Content)
-
 ````
 
 Also in your template, add the following at the top. It includes some
