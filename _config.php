@@ -11,6 +11,10 @@ Director::addRules(100, array(
 	
 ));
 
+if (($FRONTEND_EDITING_MODULE = basename(dirname(__FILE__))) != 'frontend-editing') {
+	die("The Frontend Editing module MUST be in the /frontend-editing directory, not $FRONTEND_EDITING_MODULE");
+}
+
 // Add something like the following for pages that you are going to use frontend editing on
 // DataObject::add_extension('Page', 'FrontendEditableExtension');
 // DataObject::add_extension('Page', 'FrontendLockable');
