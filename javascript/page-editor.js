@@ -18,8 +18,6 @@ var SSFrontendEditor = {};
 		
 		// we wait 500ms until other bits of code have run in jquery's ready(), so that 
 		// they can register plugins etc if they wish
-		this.maskScreen();
-		this.statusDiv().html("Initialising editor...");
 		setTimeout(function () {
 			SSFrontendEditor.Instance.init();
 		}, 500);
@@ -28,6 +26,7 @@ var SSFrontendEditor = {};
 	SSFrontendEditor.FrontendEditor.prototype = {
 		init: function () {
 			var _this = this;
+			this.pluginsLoaded = false;
 			this.contentChanged = false;
 			this.initialiseToolbars();
 
@@ -172,13 +171,16 @@ var SSFrontendEditor = {};
 	       		"superscript":18,"ul":19,"underline":20,"image":21,"insertimage":21,"link":22,"unlink":23,
 	       		"close":24,"arrow":26,"insertlink": 22}
 
+			
 			for (var i = 0, c = this.plugins.length; i < c; i++) {
 				// first call its load method, passing the global nicEditors object to have plugins loaded into it
-				this.plugins[i].load(nicEditors);
-
+				if (!this.pluginsLoaded) {
+					this.plugins[i].load(nicEditors);
+				}
 				// then update the buttons list
 				this.plugins[i].addButtonsTo(buttons);
 			}
+			this.pluginsLoaded = true;
 
 	       	var $this = this;
 	       	this.pageEditor = new nicEditor({buttonList: buttons, iconList: icons, iconsPath: 'frontend-editing/javascript/nicEditorIcons.gif'});
@@ -190,6 +192,16 @@ var SSFrontendEditor = {};
 
 			var numToConvert = elementsToConvert.length;
 			var numberConverted = 0;
+
+			$(document).keydown(function (e) {
+				// alt + s
+				if (e.altKey && e.which == 83) {
+					SSFrontendEditor.Instance.saveContents();
+					e.preventDefault();
+					return false;
+				}
+			})
+
 
 	       	elementsToConvert.each(function (index) {
 				$this.pageEditor.addInstance(this);
@@ -391,7 +403,7 @@ var SSFrontendEditor = {};
 				postArgs.toPublish = toPublish;
 
 				var postData = $.toJSON(postArgs);
-				$.post($this.options.commitUrl, {data: postData, ajax: true}, function (data) {
+				$.post($this.options.commitUrl, {data: postData, ajax: true, SecurityID: SS_SECURITY_ID}, function (data) {
 					var response = $.parseJSON(data);
 					if (response.success) {
 						$this.message(response.message);
@@ -452,15 +464,7 @@ var SSFrontendEditor = {};
 				}
 			});
 
-			$(document).keydown(function (e) {
-				// alt + s
-				if (e.altKey && e.which == 83) {
-					SSFrontendEditor.Instance.saveContents();
-					e.preventDefault();
-					return false;
-				}
-			})
-
+			
 			var ssSaveOptions = {
 				buttons : {
 					'sssave' : {name : __('Save this content'), type : 'SSFrontendEditor.ssEditorSaveButton'},

@@ -26,6 +26,270 @@
 	  }
 	}
 
+	SSFrontendEditor.nicEditorTableButton = nicEditorAdvancedButton.extend({
+		width: '220px',
+		addPane : function() {
+			var colorList = SystemColor();
+			var tblTitle = new bkElement('DIV')
+			  .setStyle({
+				width     : '90%',
+				height    : '20px',
+				fontSize  : '14px',
+				fontWeight: 'bold'
+			  })
+			.appendTo(this.pane.pane)
+			.setContent('Table Options');
+
+			var style="border: 1px solid #ccc; margin: 3px 0 3px 2px; float: left; width: 8em";
+			var label = 'width: 4.5em; float: left; line-height: 1.55em; display: block; clear: both;';
+
+			var Ex = new bkElement('DIV')
+			  .appendTo(this.pane.pane)
+			  .setAttributes({id:'select'})
+			  .setContent(
+				'<div style="'+label+'">Cells:</div>'
+				+'<input id="rows" type="text" value="1" style="width: 2em;  margin: 1px" />'
+				+'<label> X </label><input id="cols" type="text" value="1" '
+									+'style="width: 2em;  margin: 1px" /><br />'
+
+				+'<div style="'+label+'">Border:</div>'
+				+'<input id="brd" type="text" value="1" style="width: 2em; margin: 1px" /> '
+				+'<input id="clps" type="checkbox" />'
+				+'<label> collapse</label><br />'
+
+				+'<label style="'+label+'"> Colour: </label>'
+				+'<input id="clr" type="text" value="#000000" style="width: 5.5em; margin: 1px" /> '
+				+'<label id="selClr" style="padding-top: .3em; background: #000; color: #000; '
+				+'cursor: pointer; cursor: hand;">###</label>'
+				+'<input id="clre" style="margin: 0 0 .15em 1em" type="checkbox" /><br />'
+
+				+'<label id="BfLb" style="'+label+'">Padding: </label>'
+				+'<input id="pad" type="text" value="2" style="width: 2em; margin: 1px" /><br />'
+
+				+'<label style="'+label+'"> Width: </label>'
+				+'<input id="wth" type="text" value="100" style="width: 2em; margin: 1px" /> '
+				+'<input id="wthp" type="radio" checked name="per" /> % '
+				+'<input type="radio" name="per" /> px <br />'
+			  )
+			  .addEvent('mouseover',this.on.closure(this,x,y));
+
+			$BK('selClr').addEvent('click',this.clrOpen.closure(this,x,y));
+
+			var clItems = new bkElement('DIV')
+			  .setAttributes({id:'color'})
+			  .setStyle({
+				width     : '220px',
+				display   : 'none'
+			  });
+
+			for(var c in colorList) {
+
+				var colorCode = '#'+colorList[c];
+
+				var clSquare = new bkElement('DIV')
+				  .setStyle({
+					cursor : 'pointer',
+					height : '16px',
+					width  : '16px',
+					border : '1px solid #111',
+					'float'  : 'left',
+					margin : '1px'
+				  })
+				  .appendTo(clItems);
+
+				var clInner = new bkElement('DIV')
+				  .setStyle({
+					overflow : 'hidden',
+					margin   : 'auto',
+					background:colorCode,
+					height   : '16px'
+				  })
+				  .addEvent('click',this.clrClose.closure(this))
+				  .addEvent('mouseover',this.clSelect.closure(this,colorCode))
+				  .appendTo(clSquare);
+
+			}
+			clItems.noSelect().appendBefore($BK('BfLb'));
+
+			new bkElement('input')
+			  .setAttributes({id:'ok', type:'button', value: "OK"})
+			  .setStyle({
+				border: '1px solid #ccc',
+				margin: '3px 0 3px 2px',
+				width : '8em'
+			  })
+			  .addEvent('click',this.tdSelect.closure(this))
+			  .appendTo(Ex);
+
+			new bkElement('input')
+			  .setAttributes({id:'mode', type:'button', value: "Show Grid"})
+			  .setStyle({
+				border: '1px solid #ccc',
+				margin: '3px 0 3px 2px',
+				width : '8em'
+			  })
+			  .addEvent('click',this.mode.closure(this))
+			  .appendTo(Ex);
+
+			//---------------------------------
+
+			var tdItems = new bkElement('DIV')
+			  .setAttributes({id:'table'})
+			  .setStyle({
+				width     : '220px',
+				display   : 'none'
+			  });
+
+			for(var y=0;y<10;y++) {
+			 for(var x=0;x<10;x++) {
+
+				var tdSquare = new bkElement('DIV')
+				  .setAttributes({id:'x'+x+'y'+y})
+				  .setStyle({
+					cursor : 'pointer',
+					height : '16px',
+					width  : '16px',
+					border : '1px solid #111',
+					'float'  : 'left',
+					margin : '2px'
+				  })
+				  .appendTo(tdItems);
+
+				var tdInner = new bkElement('DIV')
+				  .setStyle({
+					overflow : 'hidden',
+					margin   : 'auto',
+					height   : '16px'
+				  })
+				  .addEvent('click',this.tdSelect.closure(this))
+				  .addEvent('mouseover',this.on.closure(this,x,y))
+				  .addEvent('mouseout',this.off.closure(this,x,y))
+				  .appendTo(tdSquare);
+
+			 }
+			}
+			this.pane.append(tdItems.noSelect());
+
+		 },
+
+		tdSelect : function() {
+			var tdpad =  ($BK('pad').value==2)?"":" style='"+"padding:"+$BK('pad').value+"px; '";
+			var collapse = $BK('clps').checked?'collapse':'separate'
+			var percent = $BK('wthp').checked?'%':'px'
+
+			var cTable = "\n";
+			for (var y=0;y<$BK('rows').value;y++) {
+			  cTable=cTable+"\n<tr>\n";
+			  for (var x=0;x<$BK('cols').value;x++) {
+				cTable=cTable+"\t<td"+tdpad+">&nbsp;</td>\n";
+			  }
+			  cTable=cTable+"</tr>";
+			}
+			cTable=cTable+"\n";
+
+			if (bkLib.isMSIE) {
+			  tdpad = $BK('clre').checked?' bordercolor="'+$BK('clr').value+'"':'';
+			  var t = new bkElement('').setContent(
+				'<table border='+$BK('brd').value+tdpad
+						+' style="border-collapse: '+collapse+'; width: '+$BK('wth').value+percent+';">'
+				+cTable+
+				'</table>'
+			  );
+			  t.appendTo(this.ne.selectedInstance.getElm());
+			} else {
+			  var t = new bkElement('table')
+				.setAttributes({
+					border          : $BK('brd').value,
+					id              : 'brd-color'
+				})
+				.setStyle({
+					width           : $BK('wth').value+percent,
+					borderCollapse  : collapse
+				})
+				.setContent(cTable);
+				/*  BOF sj
+				var $tlbk=$BK('clre').checked
+				var $tlbkval=$BK('clr').value
+				tlv=this.ne.selectedInstance.getElm()
+				tlv.focus();
+				/* EOF sj */
+				var inst = this.ne.selectedInstance;
+				inst.restoreRng();
+				inst.getRng().insertNode(t);
+
+				this.ne.selectedInstance.getElm().innerHTML =
+					this.ne.selectedInstance.getElm().innerHTML
+						.replace('id="brd-color"',$BK('clre').checked?'bordercolor="'+$BK('clr').value+'"':'');
+			}
+
+			this.removePane();
+		 },
+
+		clSelect : function(colorCode) {
+			$BK('clr').value = colorCode;
+			$BK('selClr').style.backgroundColor = colorCode;
+			$BK('selClr').style.color = colorCode;
+		 },
+
+		clrOpen : function() {
+		   if ($BK('color').style.display == 'none') {
+			  $BK('color').style.display = 'block';
+		   } else {
+			  $BK('color').style.display = 'none'
+		   }
+			  $BK('clre').checked = true;
+			  $BK('table').style.display = 'none';
+			  $BK('mode').value = "Hide Grid";
+		 },
+
+		clrClose : function() {
+		   $BK('color').style.display = 'none'
+		 },
+
+		on : function(xx,yy) {
+				for(var y=0;y<10;y++) {
+					for(var x=0;x<10;x++) {
+						if (x<=xx && y<=yy) {
+							if ($BK('x'+x+'y'+y).style.borderColor!='#f80') {
+								$BK('x'+x+'y'+y).style.borderColor = '#f80';
+							}
+							/* BOF swap 'rows' and 'cols' */
+							$BK('cols').value = x+1;
+							$BK('rows').value = y+1;
+							/* EOF swap 'rows' and 'cols' */
+						} else {
+							if ($BK('x'+x+'y'+y).style.borderColor!='#111') {
+								$BK('x'+x+'y'+y).style.borderColor = '#111';
+							}
+						}
+					}
+				}
+			 },
+
+		off : function(x,y) {
+			$BK('x'+x+'y'+y).style.borderColor = '#f80';
+		 },
+
+		mode :function() {
+			if ($BK('table').style.display=='none') {
+			  $BK('table').style.display = 'block';
+			  $BK('mode').value = "Hide Grid";
+			  $BK('color').style.display = 'none';
+			} else {
+			  $BK('table').style.display = 'none';
+			  $BK('mode').value = "Show Grid";
+			}
+		 },
+
+		exit : function() {
+			for(var y=0;y<10;y++) {
+				for(var x=0;x<10;x++) {
+						$BK('x'+x+'y'+y).style.borderColor = '#111';
+				}
+			}
+		 }
+	});
+
 	SSFrontendEditor.Instance.registerPlugin({
 		addButtonsTo: function (buttonList) {
 			buttonList.push('table');
@@ -37,271 +301,6 @@
 			   },
 			   iconFiles : {'table' : 'frontend-editing/javascript/table_add.png'}
 			};
-
-			SSFrontendEditor.nicEditorTableButton = nicEditorAdvancedButton.extend({
-				width: '220px',
-				addPane : function() {
-					var colorList = SystemColor();
-					var tblTitle = new bkElement('DIV')
-					  .setStyle({
-						width     : '90%',
-						height    : '20px',
-						fontSize  : '14px',
-						fontWeight: 'bold'
-					  })
-					.appendTo(this.pane.pane)
-					.setContent('Table Options');
-
-					var style="border: 1px solid #ccc; margin: 3px 0 3px 2px; float: left; width: 8em";
-					var label = 'width: 4.5em; float: left; line-height: 1.55em; display: block; clear: both;';
-
-					var Ex = new bkElement('DIV')
-					  .appendTo(this.pane.pane)
-					  .setAttributes({id:'select'})
-					  .setContent(
-						'<div style="'+label+'">Cells:</div>'
-						+'<input id="rows" type="text" value="1" style="width: 2em;  margin: 1px" />'
-						+'<label> X </label><input id="cols" type="text" value="1" '
-											+'style="width: 2em;  margin: 1px" /><br />'
-
-						+'<div style="'+label+'">Border:</div>'
-						+'<input id="brd" type="text" value="1" style="width: 2em; margin: 1px" /> '
-						+'<input id="clps" type="checkbox" />'
-						+'<label> collapse</label><br />'
-
-						+'<label style="'+label+'"> Colour: </label>'
-						+'<input id="clr" type="text" value="#000000" style="width: 5.5em; margin: 1px" /> '
-						+'<label id="selClr" style="padding-top: .3em; background: #000; color: #000; '
-						+'cursor: pointer; cursor: hand;">###</label>'
-						+'<input id="clre" style="margin: 0 0 .15em 1em" type="checkbox" /><br />'
-
-						+'<label id="BfLb" style="'+label+'">Padding: </label>'
-						+'<input id="pad" type="text" value="2" style="width: 2em; margin: 1px" /><br />'
-
-						+'<label style="'+label+'"> Width: </label>'
-						+'<input id="wth" type="text" value="100" style="width: 2em; margin: 1px" /> '
-						+'<input id="wthp" type="radio" checked name="per" /> % '
-						+'<input type="radio" name="per" /> px <br />'
-					  )
-					  .addEvent('mouseover',this.on.closure(this,x,y));
-
-					$BK('selClr').addEvent('click',this.clrOpen.closure(this,x,y));
-
-					var clItems = new bkElement('DIV')
-					  .setAttributes({id:'color'})
-					  .setStyle({
-						width     : '220px',
-						display   : 'none'
-					  });
-
-					for(var c in colorList) {
-
-						var colorCode = '#'+colorList[c];
-
-						var clSquare = new bkElement('DIV')
-						  .setStyle({
-							cursor : 'pointer',
-							height : '16px',
-							width  : '16px',
-							border : '1px solid #111',
-							'float'  : 'left',
-							margin : '1px'
-						  })
-						  .appendTo(clItems);
-
-						var clInner = new bkElement('DIV')
-						  .setStyle({
-							overflow : 'hidden',
-							margin   : 'auto',
-							background:colorCode,
-							height   : '16px'
-						  })
-						  .addEvent('click',this.clrClose.closure(this))
-						  .addEvent('mouseover',this.clSelect.closure(this,colorCode))
-						  .appendTo(clSquare);
-
-					}
-					clItems.noSelect().appendBefore($BK('BfLb'));
-
-					new bkElement('input')
-					  .setAttributes({id:'ok', type:'button', value: "OK"})
-					  .setStyle({
-						border: '1px solid #ccc',
-						margin: '3px 0 3px 2px',
-						width : '8em'
-					  })
-					  .addEvent('click',this.tdSelect.closure(this))
-					  .appendTo(Ex);
-
-					new bkElement('input')
-					  .setAttributes({id:'mode', type:'button', value: "Show Grid"})
-					  .setStyle({
-						border: '1px solid #ccc',
-						margin: '3px 0 3px 2px',
-						width : '8em'
-					  })
-					  .addEvent('click',this.mode.closure(this))
-					  .appendTo(Ex);
-
-					//---------------------------------
-
-					var tdItems = new bkElement('DIV')
-					  .setAttributes({id:'table'})
-					  .setStyle({
-						width     : '220px',
-						display   : 'none'
-					  });
-
-					for(var y=0;y<10;y++) {
-					 for(var x=0;x<10;x++) {
-
-						var tdSquare = new bkElement('DIV')
-						  .setAttributes({id:'x'+x+'y'+y})
-						  .setStyle({
-							cursor : 'pointer',
-							height : '16px',
-							width  : '16px',
-							border : '1px solid #111',
-							'float'  : 'left',
-							margin : '2px'
-						  })
-						  .appendTo(tdItems);
-
-						var tdInner = new bkElement('DIV')
-						  .setStyle({
-							overflow : 'hidden',
-							margin   : 'auto',
-							height   : '16px'
-						  })
-						  .addEvent('click',this.tdSelect.closure(this))
-						  .addEvent('mouseover',this.on.closure(this,x,y))
-						  .addEvent('mouseout',this.off.closure(this,x,y))
-						  .appendTo(tdSquare);
-
-					 }
-					}
-					this.pane.append(tdItems.noSelect());
-
-				 },
-
-				tdSelect : function() {
-					var tdpad =  ($BK('pad').value==2)?"":" style='"+"padding:"+$BK('pad').value+"px; '";
-					var collapse = $BK('clps').checked?'collapse':'separate'
-					var percent = $BK('wthp').checked?'%':'px'
-
-					var cTable = "\n";
-					for (var y=0;y<$BK('rows').value;y++) {
-					  cTable=cTable+"\n<tr>\n";
-					  for (var x=0;x<$BK('cols').value;x++) {
-						cTable=cTable+"\t<td"+tdpad+">&nbsp;</td>\n";
-					  }
-					  cTable=cTable+"</tr>";
-					}
-					cTable=cTable+"\n";
-
-					if (bkLib.isMSIE) {
-					  tdpad = $BK('clre').checked?' bordercolor="'+$BK('clr').value+'"':'';
-					  var t = new bkElement('').setContent(
-						'<table border='+$BK('brd').value+tdpad
-								+' style="border-collapse: '+collapse+'; width: '+$BK('wth').value+percent+';">'
-						+cTable+
-						'</table>'
-					  );
-					  t.appendTo(this.ne.selectedInstance.getElm());
-					} else {
-					  var t = new bkElement('table')
-						.setAttributes({
-							border          : $BK('brd').value,
-							id              : 'brd-color'
-						})
-						.setStyle({
-							width           : $BK('wth').value+percent,
-							borderCollapse  : collapse
-						})
-						.setContent(cTable);
-						/*  BOF sj
-						var $tlbk=$BK('clre').checked
-						var $tlbkval=$BK('clr').value
-						tlv=this.ne.selectedInstance.getElm()
-						tlv.focus();
-						/* EOF sj */
-						var inst = this.ne.selectedInstance;
-						inst.restoreRng();
-						inst.getRng().insertNode(t);
-
-						this.ne.selectedInstance.getElm().innerHTML =
-							this.ne.selectedInstance.getElm().innerHTML
-								.replace('id="brd-color"',$BK('clre').checked?'bordercolor="'+$BK('clr').value+'"':'');
-					}
-
-					this.removePane();
-				 },
-
-				clSelect : function(colorCode) {
-					$BK('clr').value = colorCode;
-					$BK('selClr').style.backgroundColor = colorCode;
-					$BK('selClr').style.color = colorCode;
-				 },
-
-				clrOpen : function() {
-				   if ($BK('color').style.display == 'none') {
-					  $BK('color').style.display = 'block';
-				   } else {
-					  $BK('color').style.display = 'none'
-				   }
-					  $BK('clre').checked = true;
-					  $BK('table').style.display = 'none';
-					  $BK('mode').value = "Hide Grid";
-				 },
-
-				clrClose : function() {
-				   $BK('color').style.display = 'none'
-				 },
-
-				on : function(xx,yy) {
-						for(var y=0;y<10;y++) {
-							for(var x=0;x<10;x++) {
-								if (x<=xx && y<=yy) {
-									if ($BK('x'+x+'y'+y).style.borderColor!='#f80') {
-										$BK('x'+x+'y'+y).style.borderColor = '#f80';
-									}
-									/* BOF swap 'rows' and 'cols' */
-									$BK('cols').value = x+1;
-									$BK('rows').value = y+1;
-									/* EOF swap 'rows' and 'cols' */
-								} else {
-									if ($BK('x'+x+'y'+y).style.borderColor!='#111') {
-										$BK('x'+x+'y'+y).style.borderColor = '#111';
-									}
-								}
-							}
-						}
-					 },
-
-				off : function(x,y) {
-					$BK('x'+x+'y'+y).style.borderColor = '#f80';
-				 },
-
-				mode :function() {
-					if ($BK('table').style.display=='none') {
-					  $BK('table').style.display = 'block';
-					  $BK('mode').value = "Hide Grid";
-					  $BK('color').style.display = 'none';
-					} else {
-					  $BK('table').style.display = 'none';
-					  $BK('mode').value = "Show Grid";
-					}
-				 },
-
-				exit : function() {
-					for(var y=0;y<10;y++) {
-						for(var x=0;x<10;x++) {
-								$BK('x'+x+'y'+y).style.borderColor = '#111';
-						}
-					}
-				 }
-			});
-
 			editors.registerPlugin(nicPlugin,tableOptions);
 		}
 	});
