@@ -22,6 +22,7 @@ Add the following to your _config.php for the pages you want editable
 
 ````
 DataObject::add_extension('Page', 'FrontendEditableExtension');
+
 DataObject::add_extension('Page', 'FrontendLockable');
 ````
 
