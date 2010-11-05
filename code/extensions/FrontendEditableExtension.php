@@ -151,7 +151,12 @@ class FrontendEditableExtension extends DataObjectDecorator
 
 				$lockUpdate = $this->owner->getLockUpdater();
 				Requirements::customScript($lockUpdate, 'lock_updater_for_'.$this->owner->ID);
-				Requirements::customScript("var SS_SECURITY_ID='".Session::get('SecurityID')."'");
+				$secId = Session::get('SecurityID');
+				if (!$secId) {
+					$secId = rand();
+					Session::set('SecurityID', $secId);
+				}
+				Requirements::customScript("var SS_SECURITY_ID='".$secId."'");
 
 				$ID = $this->owner->ID;
 				$typeInfo = $this->owner->ClassName.'-'.$ID;
