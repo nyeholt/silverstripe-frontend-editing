@@ -60,29 +60,47 @@
 					var curRange = this.ne.selectedInstance.getRng();
 					if (window.getSelection) {
 						var selectionContent = curRange.extractContents();
-						for (var i = selectionContent.childNodes.length - 1; i >= 0; i--) {
-							var tn = selectionContent.childNodes[i];
-							if (tn.nodeType == 3) {
-								curRange.insertNode($('<span>').addClass(cls).text(tn.nodeValue).get(0));
-							} else {
-								curRange.insertNode($(tn).addClass(cls).clone().get(0));
+						if (selectionContent.childNodes && selectionContent.childNodes.length > 0) {
+							for (var i = selectionContent.childNodes.length - 1; i >= 0; i--) {
+								var tn = selectionContent.childNodes[i];
+								if (tn.nodeType == 3) {
+									curRange.insertNode($('<span>').addClass(cls).text(tn.nodeValue).get(0));
+								} else {
+									curRange.insertNode($(tn).addClass(cls).clone().get(0));
+								}
 							}
+						} else {
+							var seld = this.ne.selectedInstance.selElm();
+							if (seld.nodeType == 3) {
+								seld = seld.parentNode;
+							}
+							$(seld).addClass(cls);
 						}
 					} else {
 						var childNodes = $('<div>').append(curRange.htmlText).get(0).childNodes;
 						var pc = $('<div>');
-						for (var i = 0; i < childNodes.length; i++) {
-							var tn = childNodes[i];
-							if (tn.nodeType == 3) {
-								var newSpan = $('<span>').addClass(cls).text(tn.nodeValue);
-								pc.append(newSpan);
-							} else {
-								var newSpan = $(tn).clone().addClass(cls);
-								pc.append(newSpan);
+						if (childNodes && childNodes.length) {
+							for (var i = 0; i < childNodes.length; i++) {
+								var tn = childNodes[i];
+								if (tn.nodeType == 3) {
+									var newSpan = $('<span>').addClass(cls).text(tn.nodeValue);
+									pc.append(newSpan);
+								} else {
+									var newSpan = $(tn).clone().addClass(cls);
+									pc.append(newSpan);
+								}
+							}
+							var newText = pc.html();
+							curRange.pasteHTML(newText);
+						} else {
+							var seld = this.ne.selectedInstance.selElm();
+							if (seld) {
+								if (seld.nodeType == 3) {
+									seld = seld.parentNode;
+								}
+								$(seld).addClass(cls);
 							}
 						}
-						var newText = pc.html();
-						curRange.pasteHTML(newText);
 					}
 
 					this.close();
