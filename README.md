@@ -9,9 +9,11 @@ Marcus Nyeholt
 
 ## Requirements
 
-SilverStripe 2.4.x
+SilverStripe 3.0
 
 ## Documentation
+
+SilverStripe 2.4 version still available in the ss24 branch
 
 The frontend editing module adds the ability to edit HTML based content on
 the frontend of your website. Developers specify in their templates the
