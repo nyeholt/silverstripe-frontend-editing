@@ -28,14 +28,14 @@ class FrontendEditableExtension extends DataExtension {
 	public function updateCMSFields(FieldList $fields) {
 		$members = DataObject::get('Member');
 		$ids = $members->column('ID');
-		$unames = $members->column('getTitle');
+		$unames = $members->column('Email');
 		$users = array_combine($ids, $unames);
 
 		if (!$this->owner->CreatorID) {
 			$this->owner->CreatorID = Member::currentUserID();
 		}
 
-		$fields->addFieldToTab('Root.Content.Main', new DropdownField('CreatorID', 'Owner', $users), 'Content');
+		$fields->addFieldToTab('Root.Main', new DropdownField('CreatorID', 'Owner', $users), 'Content');
 	}
 
 	/**

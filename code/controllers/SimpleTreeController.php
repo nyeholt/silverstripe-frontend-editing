@@ -1,17 +1,23 @@
 <?php
+
 /**
  * Controller that handles requests for data to manage the tree
  *
  * @author Marcus Nyeholt <marcus@silverstripe.com.au>
  */
 class SimpleTreeController extends Controller {
+
+	private static $allowed_actions = array(
+		'childnodes',
+	);
+
 	/**
 	 * Request nodes from the server
 	 *
 	 * @param SS_HTTPRequest $request
 	 * @return JSONString
 	 */
-    public function childnodes($request) {
+	public function childnodes($request) {
 		$data = array();
 
 		$rootObjectType = 'SiteTree';
@@ -25,7 +31,7 @@ class SimpleTreeController extends Controller {
 
 		$parentId = $request->getVar('id');
 		if (!$parentId) {
-			$parentId = $rootObjectType.'-0';
+			$parentId = $rootObjectType . '-0';
 		}
 
 		$selectable = null;
@@ -71,7 +77,7 @@ class SimpleTreeController extends Controller {
 					}
 
 					$nodeEntry = array(
-						'attributes' => array('id' => $child->ClassName. '-' . $child->ID, 'title' => Convert::raw2att($nodeData['title']), 'link' => $child->RelativeLink()),
+						'attributes' => array('id' => $child->ClassName . '-' . $child->ID, 'title' => Convert::raw2att($nodeData['title']), 'link' => $child->RelativeLink()),
 						'data' => $nodeData,
 						'state' => $haskids ? 'closed' : 'open'
 					);
@@ -107,12 +113,11 @@ class SimpleTreeController extends Controller {
 	 * @param DataObject $node
 	 * @return DataObjectSet
 	 */
-	protected function childrenOfNode($node)
-	{
+	protected function childrenOfNode($node) {
 		$result = $node->stageChildren(true);
-		if(isset($result)) {
-			foreach($result as $child) {
-				if(!$child->canView()) {
+		if (isset($result)) {
+			foreach ($result as $child) {
+				if (!$child->canView()) {
 					$result->remove($child);
 				}
 			}
@@ -126,30 +131,28 @@ class SimpleTreeController extends Controller {
 	 * of nodes that should be opened from the top down
 	 *
 	 */
-	protected function performSearch($query, $rootObjectType = 'SiteTree')
-	{
+	protected function performSearch($query, $rootObjectType = 'SiteTree') {
 		$item = null;
 
-		if(preg_match('/\[sitetree_link id=([0-9]+)\]/i', $query, $matches)) {
+		if (preg_match('/\[sitetree_link id=([0-9]+)\]/i', $query, $matches)) {
 			$item = DataObject::get_by_id($rootObjectType, $matches[1]);
-			
-		} else if (preg_match ('/^assets\//', $query)) {
+		} else if (preg_match('/^assets\//', $query)) {
 			// search for the file based on its filepath
-			$item = DataObject::get_one($rootObjectType, singleton('FEUtils')->dbQuote(array ('Filename =' => $query)));
+			$item = DataObject::get_one($rootObjectType, singleton('FEUtils')->dbQuote(array('Filename =' => $query)));
 		}
 
 		if ($item && $item->ID) {
 			$items = array();
 			while ($item->ParentID != 0) {
-				array_unshift($items, $rootObjectType.'-'.$item->ID);
+				array_unshift($items, $rootObjectType . '-' . $item->ID);
 				$item = $item->Parent();
 			}
 
-			array_unshift($items, $rootObjectType.'-'.$item->ID);
+			array_unshift($items, $rootObjectType . '-' . $item->ID);
 			return implode(',', $items);
 		}
 
 		return '';
 	}
+
 }
-?>

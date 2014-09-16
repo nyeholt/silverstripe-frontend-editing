@@ -105,14 +105,12 @@ JSCRIPT;
 		Versioned::reading_stage('Stage');
 
 		$filter = array(
-			'SiteTree.ID =' => $this->owner->ID,
-			'LockExpiry > ' => date('Y-m-d H:i:s'),
+			'ID' => $this->owner->ID,
+			'LockExpiry:GreaterThan' => date('Y-m-d H:i:s'),
 		);
 
-		$filter = singleton('FEUtils')->dbQuote($filter);
-
 		$user = Member::currentUser();
-		$currentLock = DataObject::get_one('SiteTree', $filter);
+		$currentLock = Page::get()->filter($filter)->first(); 
 
 		$lock = null;
 
