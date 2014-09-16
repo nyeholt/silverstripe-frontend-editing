@@ -1,31 +1,12 @@
 <?php
-/*
-
-Copyright (c) 2009, SilverStripe Australia PTY LTD - www.silverstripe.com.au
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of SilverStripe nor the names of its contributors may be used to endorse or promote products derived from this software
-      without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
-OF SUCH DAMAGE.
-*/
 
 /**
  * Apply this extension to a page type to allow it to be 'locked'. 
  *
  * @author Marcus Nyeholt <marcus@silverstripe.com.au>
  */
-class FrontendLockable extends DataObjectDecorator {
+class FrontendLockable extends DataExtension {
+
 	/**
 	 * lock pages for 1 minute at a time by default
 	 * This value is in seconds
@@ -33,18 +14,12 @@ class FrontendLockable extends DataObjectDecorator {
 	 * @var int
 	 */
 	public static $lock_time = 120;
+	public static $db = array(
+		'LockExpiry' => 'SS_Datetime',
+		'LastEditor' => 'Varchar(64)', // different from the 'modifiedby'? 
+	);
 
-    public function extraStatics()
-	{
-		return array(
-			'db' => array(
-				'LockExpiry' => 'SS_Datetime',
-				'LastEditor' => 'Varchar(64)',		// different from the 'modifiedby'? 
-			)
-		);
-	}
-
-	public function updateCMSFields(FieldSet &$fields) {
+	public function updateCMSFields(FieldList $fields) {
 		$fields->addFieldToTab('Root.Locking', new TextField('LastEditor', _t('EditablePage.LOCKEDBY', 'Last locked by'), '', 20));
 		$fields->addFieldToTab('Root.Locking', new TextField('LockExpiry', _t('EditablePage.LOCK_EXPIRY', 'Lock will expire by'), '', 20));
 	}
@@ -55,9 +30,8 @@ class FrontendLockable extends DataObjectDecorator {
 	 * Returns raw javascript that must first be wrapped in <script> tags before being usable!
 	 *
 	 */
-	public function getLockUpdater()
-	{
-		$updateUrl = Director::baseURL() . LOCKABLE_PREFIX .'/updatelock/'.$this->owner->ID;
+	public function getLockUpdater() {
+		$updateUrl = Director::baseURL() . LOCKABLE_PREFIX . '/updatelock/' . $this->owner->ID;
 		$timeout = (self::$lock_time - 10);
 		$script = <<<JSCRIPT
 (function ($) {
@@ -75,8 +49,7 @@ JSCRIPT;
 	/**
 	 * Before saving, make sure to set a default lock time
 	 */
-	public function onBeforeWrite()
-	{
+	public function onBeforeWrite() {
 		// set a lock expiry in the past if there's not one already set
 		if (!$this->owner->LockExpiry) {
 			$this->owner->LockExpiry = date('Y-m-d H:i:s');
@@ -92,10 +65,9 @@ JSCRIPT;
 	 * Lock the page for the current user
 	 *
 	 * @param Member $member
-	 *			The user to lock the page for
+	 * 			The user to lock the page for
 	 */
-	public function lock($member = null)
-	{
+	public function lock($member = null) {
 		if (!$member) {
 			$member = Member::currentUser();
 		}
@@ -127,8 +99,7 @@ JSCRIPT;
 	 * @return array
 	 * 			The names of any existing editors
 	 */
-	public function getEditingLocks($doLock=false)
-	{
+	public function getEditingLocks($doLock = false) {
 		$currentStage = Versioned::current_stage();
 
 		Versioned::reading_stage('Stage');
@@ -172,15 +143,14 @@ JSCRIPT;
 	 * locks automatically. 
 	 *
 	 * @param Member $member
-	 *			The member to check lock holding for
+	 * 			The member to check lock holding for
 	 * @param boolean $explicit
-	 *			If set, then the logic will return true ONLY if the user has previously taken the locks
-	 *			and will not attempt to take the locks now
+	 * 			If set, then the logic will return true ONLY if the user has previously taken the locks
+	 * 			and will not attempt to take the locks now
 	 */
-	public function userHasLocks($member=null, $explicit=true) {
+	public function userHasLocks($member = null, $explicit = true) {
 		if (!$member) {
 			$member = Member::currentUser();
-
 		}
 
 		$lock = $this->getEditingLocks(!$explicit);
@@ -190,5 +160,7 @@ JSCRIPT;
 
 		return false;
 	}
+
 }
+
 ?>

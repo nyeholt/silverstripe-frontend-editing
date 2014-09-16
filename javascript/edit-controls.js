@@ -22,6 +22,4 @@
 			location.href = cur + sep + 'stage=Stage&startEditing=true';
 		})
 	});
-
-
 })(jQuery);

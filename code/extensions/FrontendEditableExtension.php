@@ -1,46 +1,20 @@
 <?php
-/*
-
-Copyright (c) 2009, SilverStripe Australia PTY LTD - www.silverstripe.com.au
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of SilverStripe nor the names of its contributors may be used to endorse or promote products derived from this software
-      without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
-OF SUCH DAMAGE.
-*/
 
 /**
  * An extension that allows theme authors to mark certain regions as editable
  *
  * @author Marcus Nyeholt <marcus@silverstripe.com.au>
  */
-class FrontendEditableExtension extends DataObjectDecorator
-{
-	public function extraStatics()
-	{
-		return array(
-			'has_one' => array(
-				'Creator' => 'Member',
-			)
-		);
-	}
+class FrontendEditableExtension extends DataExtension {
+
+	public static $has_one = array(
+		'Creator' => 'Member',
+	);
 
 	/**
 	 * Make sure to set a creator!
 	 */
-	public function onBeforeWrite()
-	{
+	public function onBeforeWrite() {
 		if (!$this->owner->CreatorID) {
 			$this->CreatorID = Member::currentUserID();
 		}
@@ -51,8 +25,7 @@ class FrontendEditableExtension extends DataObjectDecorator
 	 *
 	 * @param FieldSet $fields
 	 */
-	public function updateCMSFields($fields)
-	{
+	public function updateCMSFields(FieldList $fields) {
 		$members = DataObject::get('Member');
 		$ids = $members->column('ID');
 		$unames = $members->column('getTitle');
@@ -70,8 +43,7 @@ class FrontendEditableExtension extends DataObjectDecorator
 	 *
 	 * @return boolean
 	 */
-	public function LiveSite()
-	{
+	public function LiveSite() {
 		return Versioned::current_stage() == 'Live';
 	}
 
@@ -79,14 +51,13 @@ class FrontendEditableExtension extends DataObjectDecorator
 	 * Indicates whether the current user can edit the current fields on the frontend
 	 *
 	 * @param String $checkStage
-	 *			If set, the stage will be checked to ensure that we're on that stage - this
-	 *			allows us to check if the current user has got access to edit (regardless of whether they're on the
-	 *			right stage), and to check including the right stage
+	 * 			If set, the stage will be checked to ensure that we're on that stage - this
+	 * 			allows us to check if the current user has got access to edit (regardless of whether they're on the
+	 * 			right stage), and to check including the right stage
 	 *
 	 * @return boolean
 	 */
-	public function FrontendEditAllowed($checkStage=true)
-	{
+	public function FrontendEditAllowed($checkStage = true) {
 		if (!Member::currentUserID()) {
 			return false;
 		}
@@ -118,9 +89,8 @@ class FrontendEditableExtension extends DataObjectDecorator
 	 * @param String $tagType
 	 * @return String
 	 */
-	public function EditableField($fieldName, $tagType='div')
-	{
-		Requirements::javascript('sapphire/thirdparty/jquery/jquery-packed.js');
+	public function EditableField($fieldName, $tagType = 'div') {
+		Requirements::javascript(THIRDPARTY_DIR . '/jquery/jquery.js');
 		Requirements::javascript('frontend-editing/javascript/edit-controls.js');
 		Requirements::css('frontend-editing/css/edit-controls.css');
 
@@ -131,7 +101,7 @@ class FrontendEditableExtension extends DataObjectDecorator
 			Requirements::css('frontend-editing/css/page-editor.css');
 			// we can't edit if there's a lock and that locking user is NOT us
 			if ($lock != null && $lock['user'] != Member::currentUser()->Email) {
-				return '<div class="__editable_locked">'.$this->owner->XML_val($fieldName).'<p class="lockInfo">'.sprintf(_t('FrontendEdit.LOCKED_BY', 'Locked by %s until %s'), $lock['user'], $lock['expires']).'</p></div>';
+				return '<div class="__editable_locked">' . $this->owner->XML_val($fieldName) . '<p class="lockInfo">' . sprintf(_t('FrontendEdit.LOCKED_BY', 'Locked by %s until %s'), $lock['user'], $lock['expires']) . '</p></div>';
 			} else {
 				Requirements::css('frontend-editing/javascript/jstree/themes/default/style.css');
 
@@ -141,7 +111,7 @@ class FrontendEditableExtension extends DataObjectDecorator
 				Requirements::javascript('frontend-editing/javascript/jstree-0.9.9a2/jquery.tree.js');
 				Requirements::javascript('frontend-editing/javascript/jquery.json.js');
 				Requirements::javascript('frontend-editing/javascript/nicEditDev.js');
-				
+
 				Requirements::javascript('frontend-editing/javascript/page-editor.js');
 
 				Requirements::javascript('frontend-editing/javascript/nicedit-table.js');
@@ -150,22 +120,24 @@ class FrontendEditableExtension extends DataObjectDecorator
 				Requirements::javascript('frontend-editing/javascript/nicedit-url-selector.js');
 
 				$lockUpdate = $this->owner->getLockUpdater();
-				Requirements::customScript($lockUpdate, 'lock_updater_for_'.$this->owner->ID);
+				Requirements::customScript($lockUpdate, 'lock_updater_for_' . $this->owner->ID);
 				$secId = Session::get('SecurityID');
 				if (!$secId) {
 					$secId = rand();
 					Session::set('SecurityID', $secId);
 				}
-				Requirements::customScript("var SS_SECURITY_ID='".$secId."'");
+				Requirements::customScript("var SS_SECURITY_ID='" . $secId . "'");
 
 				$ID = $this->owner->ID;
-				$typeInfo = $this->owner->ClassName.'-'.$ID;
+				$typeInfo = $this->owner->ClassName . '-' . $ID;
 				// now add the wrapped field
-				return '<'.$tagType.' class="__wysiwyg-editable" id="'.$typeInfo.'|'.$ID.'|'.$fieldName.'">'.$this->owner->XML_val($fieldName).'</'.$tagType.'>';
+				return '<' . $tagType . ' class="__wysiwyg-editable" id="' . $typeInfo . '|' . $ID . '|' . $fieldName . '">' . $this->owner->XML_val($fieldName) . '</' . $tagType . '>';
 			}
 		} else {
 			return $this->owner->XML_val($fieldName);
 		}
 	}
+
 }
+
 ?>

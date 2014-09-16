@@ -65,7 +65,7 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 			$data = json_decode($data);
 			$topublish = $data->toPublish;
 			foreach ($topublish as $typeInfo => $nothing) {
-				list($type, $id) = split('-', $typeInfo);
+				list($type, $id) = explode('-', $typeInfo);
 				if ($id) {
 					// set all the contents on the item
 					$obj = DataObject::get_by_id($type, $id);
@@ -116,7 +116,7 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 			foreach ($data as $typeInfo => $properties) {
 				$id = $properties->ID;
 				if ($id) {
-					list($type, $otherid) = split('-', $typeInfo);
+					list($type, $otherid) = explode('-', $typeInfo);
 					// set all the contents on the item
 					$obj = DataObject::get_by_id($type, $id);
 					if ($obj) {
