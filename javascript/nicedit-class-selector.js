@@ -34,7 +34,8 @@
 								try {
 									var cssRule = styleSheet.cssRules ? styleSheet.cssRules[x] : styleSheet.rules[x];
 									if(cssRule && cssRule.selectorText && cssRule.selectorText.indexOf('.wysiwyg-') == 0) {
-										rules[cssRule.selectorText] = cssRule.selectorText.replace(/.wysiwyg-/, '');
+										var className = cssRule.selectorText.replace(/.wysiwyg-/, '');
+										rules['.' + className] = className;
 									}
 								} catch (someErrorWeIgnore) {
 									cssRule = null;

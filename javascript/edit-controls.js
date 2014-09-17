@@ -1,6 +1,5 @@
 (function($){
-	function cleanUrl() {
-		var cur = location.href;
+	function cleanPath(cur) {
 		cur = cur.replace(/&stage=[a-zA-Z]+/g, '');
 		cur = cur.replace(/\?stage=[a-zA-Z]+/g, '');
 		cur = cur.replace(/&startEditing=true/g, '');
@@ -9,17 +8,28 @@
 
 	$().ready(function () {
 		$('#FE_ViewPublished').click(function () {
-			var cur = cleanUrl();
+			var newUrl = location.protocol + '//' + location.hostname + location.pathname;
+			var cur = cleanPath(location.search);
 			var sep = cur.indexOf('?') > 0 ? '&' : '?';
-			location.href = cur + sep + 'stage=Live';
+			cur = cur + sep + 'stage=Live';
+			
+			cur += location.hash;
+			
+			location.href = newUrl + cur;
 		})
 	});
 
 	$().ready(function () {
 		$('#FE_EditDraft').click(function () {
-			var cur = cleanUrl();
+			
+			var newUrl = location.protocol + '//' + location.hostname + location.pathname;
+			var cur = cleanPath(location.search);
 			var sep = cur.indexOf('?') > 0 ? '&' : '?';
-			location.href = cur + sep + 'stage=Stage&startEditing=true';
+			cur = cur + sep + 'stage=Stage&startEditing=true';
+			
+			cur += location.hash;
+			
+			location.href = newUrl + cur;
 		})
 	});
 })(jQuery);

@@ -202,7 +202,6 @@ var SSFrontendEditor = {};
 				}
 			})
 
-
 	       	elementsToConvert.each(function (index) {
 				$this.pageEditor.addInstance(this);
 				var elemParams = $(this).attr("id").split("|");
@@ -356,6 +355,7 @@ var SSFrontendEditor = {};
 
 					// need to strip chars here, for some reason it gets horribly munged
 					var cleanedContent = instances[i].getContent().replace(/\[sitetree_link%20id=/g, "[sitetree_link id=");
+					cleanedContent = cleanedContent.replace(/<br>$/, '');
 					pageArgs[pageElement] = cleanedContent;
 					pageArgs["ID"] = pageId;
 					postArgs[pagePath] = pageArgs;

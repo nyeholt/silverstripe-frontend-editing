@@ -6,10 +6,12 @@
 class FrontendEditing_Controller extends Controller implements PermissionProvider {
 	
 	private static $allowed_actions = array(
-		'getcontent',
-		'frontendCommit',
-		'frontendSave',
+		'getcontent'	=> 'PERM_FRONTEND_EDIT',
+		'frontendCommit'	=> 'PERM_FRONTEND_PUBLISH',
+		'frontendSave'	=> 'PERM_FRONTEND_EDIT',
 		'validateId',
+		'createpage'	=> 'PERM_FRONTEND_EDIT',
+		'deletepage' => 'PERM_FRONTEND_PUBLISH',
 	);
 
 	const PERM_FRONTEND_EDIT = 'PERM_FRONTEND_EDIT';
@@ -45,7 +47,7 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 	 * @return
 	 */
 	public function frontendCommit() {
-		if (!$this->validateId(isset($_POST['SecurityID']) ? $_POST['SecurityID'] : null)) {
+		if (!SecurityToken::inst()->check($this->request->postVar('SecurityID'))) {
 			return singleton('FEUtils')->ajaxResponse('Invalid security token', false);
 		}
 		Versioned::choose_site_stage();
@@ -96,6 +98,54 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 		}
 
 		return Convert::raw2json($return);
+	}
+	
+	public function createpage() {
+		$relation = $this->request->postVar('relation');
+		$context = (int) $this->request->postVar('context');
+		$to = (int) $this->request->postVar('to');
+		
+		$type = $this->request->postVar('type');
+		
+		if (!$to) {
+			$to = 0;
+		}
+		
+		if ($relation && $to) {
+			$page = Page::get()->byID($to);
+			$to = $page ? $page->ParentID : 0;
+		}
+
+		if (!$type) {
+			$type = 'Page';
+		}
+		$newSort = 0;
+		
+		$contextPage = Page::get()->byID($context);
+		if ($contextPage) {
+			$newSort = $contextPage->Sort + 1;
+		}
+
+		$newPage = $type::create();
+		$newPage->Title = 'New ' . $type;
+		$newPage->ParentID = $to;
+		$newPage->Sort = $newSort;
+		$newPage->write();
+		
+		return $newPage->ID;
+	}
+	
+	public function deletepage() {
+		$pageId = (int) $this->request->postVar('page');
+		if ($pageId) {
+			$page = Page::get()->byID($pageId);
+			if ($page) {
+				$page->doUnpublish();
+				$page->delete();
+			}
+		}
+		
+		return $pageId;
 	}
 
 	/**
