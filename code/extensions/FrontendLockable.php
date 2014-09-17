@@ -23,6 +23,10 @@ class FrontendLockable extends DataExtension {
 		$fields->addFieldToTab('Root.Locking', new TextField('LastEditor', _t('EditablePage.LOCKEDBY', 'Last locked by'), '', 20));
 		$fields->addFieldToTab('Root.Locking', new TextField('LockExpiry', _t('EditablePage.LOCK_EXPIRY', 'Lock will expire by'), '', 20));
 	}
+	
+	public function getLockTime() {
+		return (self::$lock_time - 10);
+	}
 
 	/**
 	 * Return HTML needed to persist the lock from the frontend of the website

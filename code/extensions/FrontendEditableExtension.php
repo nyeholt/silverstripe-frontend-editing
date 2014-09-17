@@ -119,19 +119,20 @@ class FrontendEditableExtension extends DataExtension {
 				Requirements::javascript('frontend-editing/javascript/nicedit-class-selector.js');
 				Requirements::javascript('frontend-editing/javascript/nicedit-url-selector.js');
 
-				$lockUpdate = $this->owner->getLockUpdater();
-				Requirements::customScript($lockUpdate, 'lock_updater_for_' . $this->owner->ID);
-				$secId = Session::get('SecurityID');
-				if (!$secId) {
-					$secId = rand();
-					Session::set('SecurityID', $secId);
-				}
-				Requirements::customScript("var SS_SECURITY_ID='" . $secId . "'");
+				$lockUpdate = $this->owner->getLockTime();
+//				Requirements::customScript($lockUpdate, 'lock_updater_for_' . $this->owner->ID);
+//				$secId = Session::get('SecurityID');
+//				if (!$secId) {
+//					$secId = rand();
+//					Session::set('SecurityID', $secId);
+//				}
+//				Requirements::customScript("var SS_SECURITY_ID='" . $secId . "'");
 
 				$ID = $this->owner->ID;
 				$typeInfo = $this->owner->ClassName . '-' . $ID;
 				// now add the wrapped field
-				return '<' . $tagType . ' class="__wysiwyg-editable" id="' . $typeInfo . '|' . $ID . '|' . $fieldName . '">' . $this->owner->XML_val($fieldName) . '</' . $tagType . '>';
+				return '<' . $tagType . ' data-security-id="' . SecurityToken::inst()->getSecurityID() . '" data-lockupdate="' . $lockUpdate .'" class="__wysiwyg-editable" id="' . $typeInfo . '|' . $ID . '|' . $fieldName . '">' . 
+					$this->owner->XML_val($fieldName) . '</' . $tagType . '>';
 			}
 		} else {
 			return $this->owner->XML_val($fieldName);
@@ -139,5 +140,3 @@ class FrontendEditableExtension extends DataExtension {
 	}
 
 }
-
-?>

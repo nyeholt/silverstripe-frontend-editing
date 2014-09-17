@@ -16,6 +16,8 @@ var SSFrontendEditor = {};
 		this.nicInstances = [];
 		this.plugins = [];
 		
+		this.cachedPageData = {escaped: {}, raw: {}};
+		
 		// we wait 500ms until other bits of code have run in jquery's ready(), so that 
 		// they can register plugins etc if they wish
 		setTimeout(function () {
@@ -32,7 +34,31 @@ var SSFrontendEditor = {};
 
 			$('body').ajaxError(function (data) {
 				_this.message("Request failed: "+data);
-			})
+			});
+			
+			// find a security ID
+			this.securityId = $('[data-security-id]').attr('data-security-id');
+			
+			var minUpdate = 600;
+			$('[data-lockupdate]').each (function () {
+				var time = $(this).attr('data-lockupdate');
+				if (time < minUpdate) {
+					minUpdate = time;
+				}
+			});
+			
+			this.lockUpdate = minUpdate;
+			
+			setInterval(function () {
+				var ids = [];
+				$('[data-lockupdate]').each(function () {
+					var bits = $(this).attr('id').split('|');
+					ids.push(bits[1]);
+				});
+				
+				$.post('__lockable/updatelocks', {lock: ids});
+				
+			}, this.lockUpdate * 1000);
 		},
 
 		/**
@@ -200,42 +226,55 @@ var SSFrontendEditor = {};
 					e.preventDefault();
 					return false;
 				}
-			})
-
-	       	elementsToConvert.each(function (index) {
-				$this.pageEditor.addInstance(this);
+			});
+			
+			var toLoad = [];
+			
+			elementsToConvert.each (function (i) {
 				var elemParams = $(this).attr("id").split("|");
 				var typeInfo = elemParams[0] + '-' + elemParams[2];
+				
+				toLoad.push(typeInfo);
+			});
+			
+			$.get('frontendedit/batchcontent', {objects: toLoad, format: 'raw'}).success(function (d) {
+				$this.cachedPageData.raw = d.data;
 
-				$(this).addClass('__editable');
+				elementsToConvert.each(function (index) {
+					$this.pageEditor.addInstance(this);
+					var elemParams = $(this).attr("id").split("|");
+					var typeInfo = elemParams[0] + '-' + elemParams[2];
 
-				// it's safe to bind now, because updateFieldContents processes syncronously
-				$(this).click(function () {
-					$this.contentChanged = true;
-				});
-				$(this).keydown(function () {
-					$this.contentChanged = true;
-				})
+					$(this).addClass('__editable');
 
-				$this.updateFieldContents(this, typeInfo, 'raw',
-					function () {
-						numberConverted++;
-						$this.statusDiv().html('<p>Loading ' + (((numberConverted) / numToConvert) * 100).toFixed(2) + '%</p>');
-						if (numberConverted >= numToConvert) {
-							// delay the clearing of the mask - makes sure that everything has inited and stuff...
-							// It's also somewhat deliberate so that users have a moment to register that yes, there's something
-							// completely different about the interface now
-							setTimeout(function () {
-								$this.clearMask();
-							}, 500);
+					// it's safe to bind now, because updateFieldContents processes syncronously
+					$(this).click(function () {
+						$this.contentChanged = true;
+					});
+					$(this).keydown(function () {
+						$this.contentChanged = true;
+					})
 
+					$this.updateFieldContents(this, typeInfo, 'raw',
+						function () {
+							numberConverted++;
+							$this.statusDiv().html('<p>Loading ' + (((numberConverted) / numToConvert) * 100).toFixed(2) + '%</p>');
+							if (numberConverted >= numToConvert) {
+								// delay the clearing of the mask - makes sure that everything has inited and stuff...
+								// It's also somewhat deliberate so that users have a moment to register that yes, there's something
+								// completely different about the interface now
+								setTimeout(function () {
+									$this.clearMask();
+								}, 500);
+
+							}
+						},
+						function () {
+							$this.unconvertEditableRegions();
 						}
-					},
-					function () {
-						$this.unconvertEditableRegions();
-					}
-				);
-	       	});
+					);
+				});
+			});
 		},
 
 		/**
@@ -260,30 +299,42 @@ var SSFrontendEditor = {};
 			var numToConvert = elementsToConvert.length;
 			var numberConverted = 0;
 			
-			elementsToConvert.each(function (index) {
+			var toLoad = [];
+			
+			elementsToConvert.each (function (i) {
 				var elemParams = $(this).attr("id").split("|");
 				var typeInfo = elemParams[0] + '-' + elemParams[2];
-				$(this).removeClass('__editable');
+				
+				toLoad.push(typeInfo);
+			});
+			
+			$.get('frontendedit/batchcontent', {objects: toLoad, format: 'escaped'}).success(function (d) {
+				$this.cachedPageData.escaped = d.data;
+				elementsToConvert.each(function (index) {
+					var elemParams = $(this).attr("id").split("|");
+					var typeInfo = elemParams[0] + '-' + elemParams[2];
+					$(this).removeClass('__editable');
 
-				$this.updateFieldContents(this, typeInfo, 'escaped',
-					function () {
-						numberConverted++;
-						$this.statusDiv().html('<p>Loading ' + (((numberConverted) / numToConvert) * 100).toFixed(2) + '%</p>');
-						if (numberConverted >= numToConvert) {
-							// delay the clearing of the mask - makes sure that everything has inited and stuff...
-							// It's also somewhat deliberate so that users have a moment to register that yes, there's something
-							// completely different about the interface now
-							setTimeout(function () {
-								$this.clearMask();
-							}, 500);
+					$this.updateFieldContents(this, typeInfo, 'escaped',
+						function () {
+							numberConverted++;
+							$this.statusDiv().html('<p>Loading ' + (((numberConverted) / numToConvert) * 100).toFixed(2) + '%</p>');
+							if (numberConverted >= numToConvert) {
+								// delay the clearing of the mask - makes sure that everything has inited and stuff...
+								// It's also somewhat deliberate so that users have a moment to register that yes, there's something
+								// completely different about the interface now
+								setTimeout(function () {
+									$this.clearMask();
+								}, 500);
 
+							}
+						},
+						function () {
+							$this.unconvertEditableRegions();
 						}
-					},
-					function () {
-						$this.unconvertEditableRegions();
-					}
-				);
-	       	});
+					);
+				});
+			});
 		},
 
 		/**
@@ -296,26 +347,37 @@ var SSFrontendEditor = {};
 		updateFieldContents: function (element, typeInfo, format, successfulLoad, loadError) {
 			var $this = this;
 			var request = $this.options.contentUrl + '/' + typeInfo + '/' + format;
-			$.ajax({
-				async: true,
-				url: request,
-				success: function (data) {
-					var response = $.parseJSON(data);
-					if (!response.success) {
-						alert("There was an error initialising the data for " + typeInfo);
-					} else {
-						$(element).html(response.data);
-						$(element).removeClass('__editable_empty');
-						if (response.data == null) {
-							$(element).addClass('__editable_empty');
-						}
-					}
-					successfulLoad.apply($this);
-				},
-				error: function () {
-					loadError.apply($this);
+			
+			if (this.cachedPageData[format]) {
+				$(element).removeClass('__editable_empty');
+				if (!this.cachedPageData[format][typeInfo]) {
+					$(element).addClass('__editable_empty');
+				} else {
+					$(element).html(this.cachedPageData[format][typeInfo]);
 				}
-			});
+				successfulLoad.apply($this);
+			} else {
+				$.ajax({
+					async: true,
+					url: request,
+					success: function (data) {
+						var response = $.parseJSON(data);
+						if (!response.success) {
+							alert("There was an error initialising the data for " + typeInfo);
+						} else {
+							$(element).html(response.data);
+							$(element).removeClass('__editable_empty');
+							if (response.data == null) {
+								$(element).addClass('__editable_empty');
+							}
+						}
+						successfulLoad.apply($this);
+					},
+					error: function () {
+						loadError.apply($this);
+					}
+				});
+			}
 		},
 
 		/**

@@ -12,6 +12,7 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 		'validateId',
 		'createpage'	=> 'PERM_FRONTEND_EDIT',
 		'deletepage' => 'PERM_FRONTEND_PUBLISH',
+		'batchcontent'	=> 'PERM_FRONTEND_EDIT',
 	);
 
 	const PERM_FRONTEND_EDIT = 'PERM_FRONTEND_EDIT';
@@ -237,5 +238,35 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 
 		return Convert::raw2json($return);
 	}
+	
+	public function batchcontent() {
+		Versioned::choose_site_stage();
+		
+		$objects = $this->request->getVar('objects');
+		$format = $this->request->getVar('format');
+		
+		$return = new stdClass();
+		$return->success = 0;
+		$return->message = "Data not found";
 
+		$return->data = array();
+		
+		if (is_array($objects) && count($objects)) {
+			foreach ($objects as $itemKey) {
+				list($type, $id, $field) = explode('-', $itemKey);
+				$item = DataObject::get_by_id($type, $id);
+				if ($item && $item->userHasLocks()) {
+					if ($item->FrontendEditAllowed()) {
+						// safe to return data
+						$return->success = 1;
+						$return->message = "";
+						$return->data[$itemKey] = $format == 'raw' ? $item->getField($field) : $item->XML_val($field);
+					}
+				}
+			}
+		}
+
+		$this->response->addHeader('Content-Type', 'application/json');
+		return Convert::raw2json($return);
+	}
 }
