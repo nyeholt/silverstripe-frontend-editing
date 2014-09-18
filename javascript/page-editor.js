@@ -350,10 +350,11 @@ var SSFrontendEditor = {};
 			
 			if (this.cachedPageData[format]) {
 				$(element).removeClass('__editable_empty');
+				$(element).html(this.cachedPageData[format][typeInfo]);
 				if (!this.cachedPageData[format][typeInfo]) {
 					$(element).addClass('__editable_empty');
 				} else {
-					$(element).html(this.cachedPageData[format][typeInfo]);
+					
 				}
 				successfulLoad.apply($this);
 			} else {
@@ -424,7 +425,7 @@ var SSFrontendEditor = {};
 				}
 
 				var postData = $.toJSON(postArgs);
-				$.post($this.options.saveUrl, {data: postData, ajax: true, SecurityID: SS_SECURITY_ID}, function (data) {
+				$.post($this.options.saveUrl, {data: postData, ajax: true, SecurityID: $this.securityId}, function (data) {
 					var response = $.parseJSON(data);
 					if (response.success) {
 						$this.message(response.message);
@@ -465,7 +466,7 @@ var SSFrontendEditor = {};
 				postArgs.toPublish = toPublish;
 
 				var postData = $.toJSON(postArgs);
-				$.post($this.options.commitUrl, {data: postData, ajax: true, SecurityID: SS_SECURITY_ID}, function (data) {
+				$.post($this.options.commitUrl, {data: postData, ajax: true, SecurityID: $this.securityId}, function (data) {
 					var response = $.parseJSON(data);
 					if (response.success) {
 						$this.message(response.message);
