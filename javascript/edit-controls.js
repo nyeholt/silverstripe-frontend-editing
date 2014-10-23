@@ -7,6 +7,16 @@
 	}
 
 	$().ready(function () {
+		
+		var editorTimeout = null;
+		
+		$('#EditControlsDetector').hover(function () {
+			$('#FrontendEditingControls').show();
+			clearTimeout(editorTimeout);
+		}, function () {
+			editorTimeout = setTimeout(function () { $('#FrontendEditingControls').hide(); }, 5000);
+		});
+		
 		$('#FE_ViewPublished').click(function () {
 			var newUrl = location.protocol + '//' + location.hostname + location.pathname;
 			var cur = cleanPath(location.search);
@@ -17,9 +27,7 @@
 			
 			location.href = newUrl + cur;
 		})
-	});
 
-	$().ready(function () {
 		$('#FE_EditDraft').click(function () {
 			
 			var newUrl = location.protocol + '//' + location.hostname + location.pathname;

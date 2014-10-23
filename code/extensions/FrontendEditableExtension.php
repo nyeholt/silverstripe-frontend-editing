@@ -96,44 +96,30 @@ class FrontendEditableExtension extends DataExtension {
 
 		// output only if the user can edit, otherwise we just output the field
 		if ($this->FrontendEditAllowed()) {
-			// try and take the lock
-			$lock = $this->owner->getEditingLocks(true);
 			Requirements::css('frontend-editing/css/page-editor.css');
-			// we can't edit if there's a lock and that locking user is NOT us
-			if ($lock != null && $lock['user'] != Member::currentUser()->Email) {
-				return '<div class="__editable_locked">' . $this->owner->XML_val($fieldName) . '<p class="lockInfo">' . sprintf(_t('FrontendEdit.LOCKED_BY', 'Locked by %s until %s'), $lock['user'], $lock['expires']) . '</p></div>';
-			} else {
-				Requirements::css('frontend-editing/javascript/jstree/themes/default/style.css');
 
-				Requirements::css('frontend-editing/javascript/jquery.jgrowl.css');
-				Requirements::javascript('frontend-editing/javascript/jquery.jgrowl_minimized.js');
+			Requirements::css('frontend-editing/javascript/jstree/themes/default/style.css');
 
-				Requirements::javascript('frontend-editing/javascript/jstree-0.9.9a2/jquery.tree.js');
-				Requirements::javascript('frontend-editing/javascript/jquery.json.js');
-				Requirements::javascript('frontend-editing/javascript/nicEditDev.js');
+			Requirements::css('frontend-editing/javascript/jquery.jgrowl.css');
+			Requirements::javascript('frontend-editing/javascript/jquery.jgrowl_minimized.js');
 
-				Requirements::javascript('frontend-editing/javascript/page-editor.js');
+			Requirements::javascript('frontend-editing/javascript/jstree-0.9.9a2/jquery.tree.js');
+			Requirements::javascript('frontend-editing/javascript/jquery.json.js');
+			Requirements::javascript('frontend-editing/javascript/nicEditDev.js');
 
-				Requirements::javascript('frontend-editing/javascript/nicedit-table.js');
-				Requirements::javascript('frontend-editing/javascript/nicedit-image-selector.js');
-				Requirements::javascript('frontend-editing/javascript/nicedit-class-selector.js');
-				Requirements::javascript('frontend-editing/javascript/nicedit-url-selector.js');
+			Requirements::javascript('frontend-editing/javascript/page-editor.js');
 
-				$lockUpdate = $this->owner->getLockTime();
-//				Requirements::customScript($lockUpdate, 'lock_updater_for_' . $this->owner->ID);
-//				$secId = Session::get('SecurityID');
-//				if (!$secId) {
-//					$secId = rand();
-//					Session::set('SecurityID', $secId);
-//				}
-//				Requirements::customScript("var SS_SECURITY_ID='" . $secId . "'");
+			Requirements::javascript('frontend-editing/javascript/nicedit-table.js');
+			Requirements::javascript('frontend-editing/javascript/nicedit-image-selector.js');
+			Requirements::javascript('frontend-editing/javascript/nicedit-class-selector.js');
+			Requirements::javascript('frontend-editing/javascript/nicedit-url-selector.js');
 
-				$ID = $this->owner->ID;
-				$typeInfo = $this->owner->ClassName . '-' . $ID;
-				// now add the wrapped field
-				return '<' . $tagType . ' data-security-id="' . SecurityToken::inst()->getSecurityID() . '" data-lockupdate="' . $lockUpdate .'" class="__wysiwyg-editable" id="' . $typeInfo . '|' . $ID . '|' . $fieldName . '">' . 
-					$this->owner->XML_val($fieldName) . '</' . $tagType . '>';
-			}
+
+			$ID = $this->owner->ID;
+			$typeInfo = $this->owner->ClassName . '-' . $ID;
+			// now add the wrapped field
+			return '<' . $tagType . ' data-security-id="' . SecurityToken::inst()->getSecurityID() . '" class="__wysiwyg-editable" id="' . $typeInfo . '|' . $ID . '|' . $fieldName . '">' . 
+				$this->owner->XML_val($fieldName) . '</' . $tagType . '>';
 		} else {
 			return $this->owner->XML_val($fieldName);
 		}

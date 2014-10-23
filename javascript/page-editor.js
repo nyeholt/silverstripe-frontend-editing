@@ -38,27 +38,6 @@ var SSFrontendEditor = {};
 			
 			// find a security ID
 			this.securityId = $('[data-security-id]').attr('data-security-id');
-			
-			var minUpdate = 600;
-			$('[data-lockupdate]').each (function () {
-				var time = $(this).attr('data-lockupdate');
-				if (time < minUpdate) {
-					minUpdate = time;
-				}
-			});
-			
-			this.lockUpdate = minUpdate;
-			
-			setInterval(function () {
-				var ids = [];
-				$('[data-lockupdate]').each(function () {
-					var bits = $(this).attr('id').split('|');
-					ids.push(bits[1]);
-				});
-				
-				$.post('__lockable/updatelocks', {lock: ids});
-				
-			}, this.lockUpdate * 1000);
 		},
 
 		/**

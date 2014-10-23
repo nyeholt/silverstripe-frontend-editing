@@ -51,7 +51,7 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 		if (!SecurityToken::inst()->check($this->request->postVar('SecurityID'))) {
 			return singleton('FEUtils')->ajaxResponse('Invalid security token', false);
 		}
-		Versioned::choose_site_stage();
+//		Versioned::choose_site_stage();
 		$urlName = isset($_POST['url']) ? $_POST['url'] : null;
 
 		if ($urlName) {
@@ -62,7 +62,7 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 			}
 		}
 
-		Versioned::choose_site_stage();
+//		Versioned::choose_site_stage();
 		$return = new stdClass();
 		$return->success = 0;
 		$return->message = "Data not found";
@@ -78,16 +78,11 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 					// set all the contents on the item
 					$obj = DataObject::get_by_id($type, $id);
 					if ($obj) {
-						$lock = $obj->getEditingLocks();
-						if (!isset($lock['LastEditor']) || $lock['LastEditor'] == Member::currentUser()->Email) {
-							if ($obj->FrontendEditAllowed() && $obj->doPublish()) {
-								$return->success = 1;
-								$return->message = _t('FrontendEditing.PUBLISH_SUCCESSFUL', "Successfully published page");
-							} else {
-								$return->message = _t('FrontendEditing.PUBLISH_NOT_ALLOWED', "You cannot publish that content.");
-							}
+						if ($obj->FrontendEditAllowed() && $obj->doPublish()) {
+							$return->success = 1;
+							$return->message = _t('FrontendEditing.PUBLISH_SUCCESSFUL', "Successfully published page");
 						} else {
-							$return->message = sprintf(_t('FrontendEditing.PAGE_LOCKED', 'That page is currently locked by %s'), $lock['user']);
+							$return->message = _t('FrontendEditing.PUBLISH_NOT_ALLOWED', "You cannot publish that content.");
 						}
 					} else {
 						$return->message = sprintf(_t('FrontendEditing.PAGE_MISSING', 'Page %s could not be found'), $id);
@@ -160,7 +155,7 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 			return singleton('FEUtils')->ajaxResponse('Invalid security token', false);
 		}
 
-		Versioned::choose_site_stage();
+//		Versioned::choose_site_stage();
 		$return = new stdClass();
 		$return->success = 0;
 		$return->message = "Data not found";
@@ -176,20 +171,15 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 					// set all the contents on the item
 					$obj = DataObject::get_by_id($type, $id);
 					if ($obj) {
-						$lock = $obj->getEditingLocks();
-						if (!isset($lock['LastEditor']) || $lock['LastEditor'] == Member::currentUser()->Email) {
-							if ($obj->FrontendEditAllowed()) {
-								unset($properties->ID);
-								$obj->update($properties);
-								$result = $obj->write();
+						if ($obj->FrontendEditAllowed()) {
+							unset($properties->ID);
+							$obj->update($properties);
+							$result = $obj->write();
 
-								$return->success = $result;
-								$return->message = "Successfully saved page #$id";
-							} else {
-								$return->message = "You cannot edit that object.";
-							}
+							$return->success = $result;
+							$return->message = "Successfully saved page #$id";
 						} else {
-							$return->message = sprintf(_t('FrontendEditing.PAGE_LOCKED', 'That page is currently locked by %s'), $lock['user']);
+							$return->message = "You cannot edit that object.";
 						}
 					} else {
 						$return->message = sprintf(_t('FrontendEditing.PAGE_MISSING', 'Page %s could not be found'), $id);
@@ -216,7 +206,7 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 	 * things like URLs etc resolve correctly
 	 */
 	public function getcontent($request) {
-		Versioned::choose_site_stage();
+//		Versioned::choose_site_stage();
 		$item = $request->param('ID');
 		$form = $request->param('OtherID');
 		$return = new stdClass();
@@ -226,13 +216,11 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 		if ($item) {
 			list($type, $id, $field) = explode('-', $item);
 			$item = DataObject::get_by_id($type, $id);
-			if ($item && $item->userHasLocks()) {
-				if ($item->FrontendEditAllowed()) {
-					// safe to return data
-					$return->success = 1;
-					$return->message = "";
-					$return->data = $form == 'raw' ? $item->getField($field) : $item->XML_val($field);
-				}
+			if ($item && $item->FrontendEditAllowed()) {
+				// safe to return data
+				$return->success = 1;
+				$return->message = "";
+				$return->data = $form == 'raw' ? $item->getField($field) : $item->XML_val($field);
 			}
 		}
 
@@ -240,8 +228,6 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 	}
 	
 	public function batchcontent() {
-		Versioned::choose_site_stage();
-		
 		$objects = $this->request->getVar('objects');
 		$format = $this->request->getVar('format');
 		
@@ -255,13 +241,11 @@ class FrontendEditing_Controller extends Controller implements PermissionProvide
 			foreach ($objects as $itemKey) {
 				list($type, $id, $field) = explode('-', $itemKey);
 				$item = DataObject::get_by_id($type, $id);
-				if ($item && $item->userHasLocks()) {
-					if ($item->FrontendEditAllowed()) {
-						// safe to return data
-						$return->success = 1;
-						$return->message = "";
-						$return->data[$itemKey] = $format == 'raw' ? $item->getField($field) : $item->XML_val($field);
-					}
+				if ($item && $item->FrontendEditAllowed()) {
+					// safe to return data
+					$return->success = 1;
+					$return->message = "";
+					$return->data[$itemKey] = $format == 'raw' ? $item->getField($field) : $item->XML_val($field);
 				}
 			}
 		}

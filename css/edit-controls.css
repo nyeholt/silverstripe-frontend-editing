@@ -1,8 +1,11 @@
-#FrontendEditingControls { position: fixed; top: 100px; right: 10px; background-color: #131F11; padding: 20px; z-index: 200; }
-#FrontendEditingControls { -moz-box-shadow: 4px 4px 5px #222; -webkit-box-shadow: 4px 4px 5px #222; -moz-border-radius: 10px; -webkit-border-radius: 10px; }
+#EditControlsDetector {position: fixed; bottom: 0px; right: 0px; width: 50px; height: 50px; }
 
-#FrontendEditingControls input { background-color: #eef5ff; font-size: 10px; padding: 5px;  }
-#FrontendEditingControls input { -moz-box-shadow: 0px 0px 10px #fffec3; -webkit-box-shadow: 0px 0px 10px #fffec3; -moz-border-radius: 5px; -webkit-border-radius: 5px; }
+#FrontendEditingControls { display: none; position: fixed; bottom: 50px; right: 10px; background-color: #131F11; padding: 10px; z-index: 200; color: #000; }
+#FrontendEditingControls { box-shadow: 4px 4px 5px #222; border-radius: 10px; }
+
+#FrontendEditingControls input, #FrontendEditingControls input[type="button"] { background-color: #eef5ff; font-size: 10px; padding: 5px; color: #000; }
+
+#FrontendEditingControls input { box-shadow: 0px 0px 2px #fffec3; border-radius: 5px; }
 
 #FrontendEditingControls #FE_SwitchOn { display: none; }
 #FrontendEditingControls #FE_SwitchOff { display: none; }
