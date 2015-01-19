@@ -1,10 +1,14 @@
 <% if $CurrentMember && $can(PERM_FRONTEND_EDIT) %>
-<div id='EditControlsDetector'>
-	
-</div>
 
-<div id="FrontendEditingControls">
-	<% if FrontendEditAllowed(butOnLiveStage)  %>
+<% if LiveSite %>
+<div id='EditControlsDetector'>
+
+</div>
+<% end_if %>
+
+<div id="FrontendEditingControls" data-islive="<% if LiveSite %>true<% end_if %>">
+	
+	<% if FrontendEditAllowed(0)  %>
 		<% if LiveSite %>
 		<input type="button" value="<% _t('FrontendEdit.EDIT_DRAFT_PAGE','Edit Draft Page') %>" id="FE_EditDraft"  />
 		<% else %>

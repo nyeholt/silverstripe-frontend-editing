@@ -17,6 +17,11 @@
 			editorTimeout = setTimeout(function () { $('#FrontendEditingControls').hide(); }, 5000);
 		});
 		
+		var isLive = $('#FrontendEditingControls').attr('data-islive') == 'true';
+		if (!isLive) {
+			$('#FrontendEditingControls').show();
+		}
+		
 		$('#FE_ViewPublished').click(function () {
 			var newUrl = location.protocol + '//' + location.hostname + location.pathname;
 			var cur = cleanPath(location.search);
